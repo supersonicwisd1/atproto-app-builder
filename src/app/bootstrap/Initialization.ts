@@ -18,6 +18,7 @@ import {
 import { renderCurrentStep } from '../views/StepRenderer';
 import { setupDialogHandlers } from '../dialogs/DialogHandlers';
 import { setupWizardOps } from './WizardOps';
+import { initializeHistoryManager } from '../navigation/HistoryManager';
 
 export let setupTooltips: () => void;
 
@@ -46,6 +47,9 @@ export function initializeApp(): void {
 
   // Setup dialog handlers
   setupDialogHandlers();
+
+  // Initialize browser history management for step navigation
+  initializeHistoryManager();
 
   // Wire up navigation buttons
   const nextBtn = document.getElementById('wizard-next');
