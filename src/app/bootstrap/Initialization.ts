@@ -19,6 +19,7 @@ import {
 import { renderCurrentStep } from '../views/StepRenderer';
 import { setupDialogHandlers } from '../dialogs/DialogHandlers';
 import { setupWizardOps } from './WizardOps';
+import { initializeHistoryManager } from '../navigation/HistoryManager';
 
 export let setupTooltips: () => void;
 
@@ -50,6 +51,9 @@ export function initializeApp(): void {
   // Setup dialog handlers
   setupDialogHandlers();
 
+  // Initialize browser history management for step navigation
+  initializeHistoryManager();
+
   // Wire up navigation buttons
   const nextBtn = document.getElementById('wizard-next');
   const backBtn = document.getElementById('wizard-back');
@@ -67,6 +71,28 @@ export function initializeApp(): void {
       saveWizardState(getWizardState());
     });
   }
+
+  // Wire up site navigation menu
+  const navAppWizard = document.getElementById('nav-app-wizard');
+  if (navAppWizard) {
+    navAppWizard.addEventListener('click', (e) => {
+      e.preventDefault();
+      const wizardState = getWizardState();
+      if (wizardState.currentStep === 0) {
+        // If on Step 0, go to Step 1
+        goToNextStep();
+      } else if (wizardState.currentStep !== 1) {
+        // If not already on Step 1, navigate there
+        collectCurrentStepData();
+        wizardState.currentStep = 1;
+        saveWizardState(wizardState);
+        renderCurrentStep();
+        updateProgressBar();
+        window.scrollTo(0, 0);
+      }
+    });
+  }
+
   const tooltip = document.getElementById('tooltip');
   let activeTooltip: Element | null = null;
 

@@ -7,6 +7,7 @@ import { collectCurrentStepData } from '../state/DataCollector';
 import { validateCurrentStep } from '../validation/StepValidator';
 import { renderCurrentStep } from '../views/StepRenderer';
 import { generateApp } from '../export/OutputGenerator';
+import { pushStepToHistory } from './HistoryManager';
 
 const STEP_NAMES = [
   'App Information',
