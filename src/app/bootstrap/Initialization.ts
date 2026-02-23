@@ -8,6 +8,7 @@ import {
   initializeWizardState,
   saveWizardState,
   getWizardState,
+  hasMeaningfulState,
 } from '../state/WizardState';
 import { collectCurrentStepData } from '../state/DataCollector';
 import {
@@ -29,7 +30,9 @@ export function initializeApp(): void {
   // Check for saved state
   const saved = loadWizardState();
 
-  if (saved && !saved.isStale) {
+  if (saved && !saved.isStale && hasMeaningfulState(saved.state)) {
+    // Only show resume dialog if there's actual wizard data to resume
+    // Steps 0 and 1 are intro pages with no user data worth resuming
     setWizardState(saved.state);
     // Show resume dialog
     const savedDate = new Date(saved.state.lastSaved);

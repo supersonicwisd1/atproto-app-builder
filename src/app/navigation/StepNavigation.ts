@@ -32,8 +32,11 @@ export function goToNextStep(): void {
 
   if (wizardState.currentStep < 7) {
     wizardState.currentStep++;
-    saveWizardState(wizardState);
-    pushStepToHistory(wizardState.currentStep);
+    // Only save state when moving to step 2+ (actual wizard content)
+    // Steps 0 and 1 are intro pages - no need to save or restore those
+    if (wizardState.currentStep >= 2) {
+      saveWizardState(wizardState);
+    }
     renderCurrentStep();
     updateProgressBar();
     window.scrollTo(0, 0);
@@ -49,8 +52,11 @@ export function goToPreviousStep(): void {
   if (wizardState.currentStep > 0) {
     collectCurrentStepData();
     wizardState.currentStep--;
-    saveWizardState(wizardState);
-    pushStepToHistory(wizardState.currentStep);
+    // Only save state when on step 2+ (actual wizard content)
+    // Steps 0 and 1 are intro pages - no need to save or restore those
+    if (wizardState.currentStep >= 2) {
+      saveWizardState(wizardState);
+    }
     renderCurrentStep();
     updateProgressBar();
     window.scrollTo(0, 0);
