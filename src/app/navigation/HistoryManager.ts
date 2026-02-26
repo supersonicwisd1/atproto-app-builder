@@ -3,7 +3,7 @@
  * Enables back/forward button support and URL-based step navigation
  */
 
-import { getWizardState, saveWizardState } from '../state/WizardState';
+import { getWizardState, saveWizardState, hasMeaningfulState } from '../state/WizardState';
 import { collectCurrentStepData } from '../state/DataCollector';
 import { renderCurrentStep } from '../views/StepRenderer';
 import { updateProgressBar } from './StepNavigation';
@@ -70,23 +70,69 @@ function navigateToStep(step: number): void {
 }
 
 /**
+ * Warn users before closing/refreshing when they have meaningful wizard data
+ */
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+  const wizardState = getWizardState();
+  if (wizardState.currentStep >= 1 && hasMeaningfulState(wizardState)) {
+    event.preventDefault();
+  }
+}
+
+/** Stored callback for when user confirms leaving the wizard */
+let leaveWizardCallback: (() => void) | null = null;
+
+/**
+ * Show a confirmation dialog before leaving the wizard, or leave immediately
+ * if there's no meaningful state to lose.
+ */
+export function guardedLeaveWizard(onConfirm: () => void): void {
+  const wizardState = getWizardState();
+  if (hasMeaningfulState(wizardState)) {
+    leaveWizardCallback = onConfirm;
+    const dialog = document.getElementById('leave-wizard-dialog') as HTMLDialogElement;
+    dialog?.showModal();
+  } else {
+    onConfirm();
+  }
+}
+
+/** Called when user confirms leaving the wizard */
+export function confirmLeaveWizard(): void {
+  const dialog = document.getElementById('leave-wizard-dialog') as HTMLDialogElement;
+  dialog?.close();
+  const callback = leaveWizardCallback;
+  leaveWizardCallback = null;
+  callback?.();
+}
+
+/** Called when user cancels leaving the wizard */
+export function cancelLeaveWizard(): void {
+  const dialog = document.getElementById('leave-wizard-dialog') as HTMLDialogElement;
+  dialog?.close();
+  leaveWizardCallback = null;
+}
+
+/**
  * Handle browser back/forward navigation
  */
 function handlePopState(event: PopStateEvent): void {
   const state = event.state as HistoryState | null;
+  const targetStep = state?.step ?? getStepFromURL() ?? 0;
+  const wizardState = getWizardState();
 
-  if (state && typeof state.step === 'number') {
-    navigateToStep(state.step);
-  } else {
-    // No state - try to get step from URL
-    const urlStep = getStepFromURL();
-    if (urlStep !== null) {
-      navigateToStep(urlStep);
-    } else {
-      // Default to step 0
+  // Intercept wizard→landing back-navigation
+  if (targetStep === 0 && wizardState.currentStep >= 1 && hasMeaningfulState(wizardState)) {
+    // Push current step back to undo the browser back
+    updateURLForStep(wizardState.currentStep, false);
+    guardedLeaveWizard(() => {
       navigateToStep(0);
-    }
+      updateURLForStep(0, true);
+    });
+    return;
   }
+
+  navigateToStep(targetStep);
 }
 
 /**
@@ -96,6 +142,9 @@ function handlePopState(event: PopStateEvent): void {
 export function initializeHistoryManager(): void {
   // Listen for browser back/forward navigation
   window.addEventListener('popstate', handlePopState);
+
+  // Warn before browser close/refresh when wizard has meaningful data
+  window.addEventListener('beforeunload', handleBeforeUnload);
 
   // Check if URL contains a step parameter and sync state
   const urlStep = getStepFromURL();

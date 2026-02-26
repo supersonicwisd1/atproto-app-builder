@@ -7,7 +7,7 @@ import { collectCurrentStepData } from '../state/DataCollector';
 import { validateCurrentStep } from '../validation/StepValidator';
 import { renderCurrentStep } from '../views/StepRenderer';
 import { generateApp } from '../export/OutputGenerator';
-import { pushStepToHistory } from './HistoryManager';
+import { pushStepToHistory, guardedLeaveWizard } from './HistoryManager';
 
 const STEP_NAMES = [
   'App Information',
@@ -38,6 +38,7 @@ export function goToNextStep(): void {
       saveWizardState(wizardState);
     }
     renderCurrentStep();
+    pushStepToHistory(wizardState.currentStep);
     updateProgressBar();
     window.scrollTo(0, 0);
   } else {
@@ -49,18 +50,32 @@ export function goToNextStep(): void {
 export function goToPreviousStep(): void {
   const wizardState = getWizardState();
 
-  if (wizardState.currentStep > 0) {
+  if (wizardState.currentStep <= 0) return;
+
+  // Step 1 → 0: guard against leaving wizard with unsaved progress
+  if (wizardState.currentStep === 1) {
     collectCurrentStepData();
-    wizardState.currentStep--;
-    // Only save state when on step 2+ (actual wizard content)
-    // Steps 0 and 1 are intro pages - no need to save or restore those
-    if (wizardState.currentStep >= 2) {
-      saveWizardState(wizardState);
-    }
-    renderCurrentStep();
-    updateProgressBar();
-    window.scrollTo(0, 0);
+    guardedLeaveWizard(() => {
+      wizardState.currentStep = 0;
+      renderCurrentStep();
+      pushStepToHistory(0);
+      updateProgressBar();
+      window.scrollTo(0, 0);
+    });
+    return;
   }
+
+  collectCurrentStepData();
+  wizardState.currentStep--;
+  // Only save state when on step 2+ (actual wizard content)
+  // Steps 0 and 1 are intro pages - no need to save or restore those
+  if (wizardState.currentStep >= 2) {
+    saveWizardState(wizardState);
+  }
+  renderCurrentStep();
+  pushStepToHistory(wizardState.currentStep);
+  updateProgressBar();
+  window.scrollTo(0, 0);
 }
 
 export function updateProgressBar(): void {
