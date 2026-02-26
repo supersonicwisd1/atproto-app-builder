@@ -16,36 +16,42 @@ interface HistoryState {
 
 /**
  * Get the step number from the current URL
- * Returns null if no step is specified in the URL
+ * Landing page (/) returns 0, wizard steps (/wizard?step=N) return 1-7
  */
 export function getStepFromURL(): number | null {
-  const params = new URLSearchParams(window.location.search);
-  const stepParam = params.get(STEP_PARAM);
+  const { pathname, search } = window.location;
 
-  if (stepParam !== null) {
-    const step = parseInt(stepParam, 10);
-    if (!isNaN(step) && step >= 0 && step <= 7) {
-      return step;
+  if (pathname.startsWith('/wizard')) {
+    const params = new URLSearchParams(search);
+    const stepParam = params.get(STEP_PARAM);
+    if (stepParam !== null) {
+      const step = parseInt(stepParam, 10);
+      if (!isNaN(step) && step >= 1 && step <= 7) {
+        return step;
+      }
     }
+    return 1;
   }
 
-  return null;
+  return 0;
 }
 
 /**
  * Update the URL to reflect the current step
+ * Step 0 → /, Steps 1-7 → /wizard?step=N
  * Uses replaceState for initial load, pushState for navigation
  */
 export function updateURLForStep(step: number, replace: boolean = false): void {
-  const url = new URL(window.location.href);
-  url.searchParams.set(STEP_PARAM, step.toString());
+  const url = step === 0
+    ? '/'
+    : `/wizard?${STEP_PARAM}=${step}`;
 
   const historyState: HistoryState = { step };
 
   if (replace) {
-    window.history.replaceState(historyState, '', url.toString());
+    window.history.replaceState(historyState, '', url);
   } else {
-    window.history.pushState(historyState, '', url.toString());
+    window.history.pushState(historyState, '', url);
   }
 }
 
