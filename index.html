@@ -18,8 +18,14 @@
             <div class="menu-blotch__splat"></div>
           </div>
           <ul class="menu-nav__list" role="list">
-            <li><a href="#" class="menu-nav__link" id="menu-app-wizard">App Wizard</a></li>
-            <li><a href="#" class="menu-nav__link" id="menu-login">LOGIN</a></li>
+            <li>
+              <a href="#" class="menu-nav__link" id="menu-app-wizard"
+                >App Wizard</a
+              >
+            </li>
+            <li>
+              <a href="#" class="menu-nav__link" id="menu-login">LOGIN</a>
+            </li>
           </ul>
         </nav>
       </div>
@@ -46,34 +52,32 @@
         </div>
 
         <!-- Navigation Buttons -->
-        <div class="wizard-narrow">
-          <div class="wizard-nav">
+        <div class="wizard-nav">
+          <button
+            type="button"
+            id="wizard-save"
+            class="wizard-button wizard-button-secondary"
+            style="display: none"
+          >
+            Save Progress
+          </button>
+          <div class="wizard-nav-main">
             <button
               type="button"
-              id="wizard-save"
+              id="wizard-back"
               class="wizard-button wizard-button-secondary"
               style="display: none"
+              disabled
             >
-              Save Progress
+              Back
             </button>
-            <div class="wizard-nav-main">
-              <button
-                type="button"
-                id="wizard-back"
-                class="wizard-button wizard-button-secondary"
-                style="display: none"
-                disabled
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                id="wizard-next"
-                class="wizard-button wizard-button-primary wizard-solo"
-              >
-                Next
-              </button>
-            </div>
+            <button
+              type="button"
+              id="wizard-next"
+              class="wizard-button wizard-button-primary wizard-solo"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -373,13 +377,27 @@
 
       <!-- Leave Wizard Confirmation Dialog -->
       <dialog id="leave-wizard-dialog" class="wizard-dialog">
-        <button type="button" class="dialog-close" id="leave-wizard-close-x">&times;</button>
+        <button type="button" class="dialog-close" id="leave-wizard-close-x">
+          &times;
+        </button>
         <div class="dialog-content">
           <h2>Leave the Wizard?</h2>
           <p>Your progress is saved and you can resume later.</p>
           <div class="dialog-buttons">
-            <button type="button" class="dialog-button" id="leave-wizard-confirm">Leave</button>
-            <button type="button" class="dialog-cancel" id="leave-wizard-cancel">Stay</button>
+            <button
+              type="button"
+              class="dialog-button"
+              id="leave-wizard-confirm"
+            >
+              Leave
+            </button>
+            <button
+              type="button"
+              class="dialog-cancel"
+              id="leave-wizard-cancel"
+            >
+              Stay
+            </button>
           </div>
         </div>
       </dialog>

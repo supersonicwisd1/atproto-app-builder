@@ -28,6 +28,9 @@ export function renderCurrentStep(): void {
         : 'THE APP WIZARD';
   }
 
+  // Toggle body class for wizard-specific layout
+  document.body.classList.toggle('wizard-active', wizardState.currentStep >= 1);
+
   switch (wizardState.currentStep) {
     case 0:
       container.innerHTML = renderStep0();

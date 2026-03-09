@@ -37,12 +37,12 @@ export function renderStep2(): string {
             ${record.fields.length} field(s) defined
           </p>
         </div>
-      `
+      `,
           )
           .join('');
 
   return `
-    <div class="wizard-narrow">
+    <div class="wizard-window">
       <div class="wizard-step">
         <h2 class="wizard-step-title">Define Record Types</h2>
         <p class="wizard-step-description">

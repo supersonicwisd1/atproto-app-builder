@@ -462,6 +462,25 @@ header h1 {
   }
 }
 
+/* ===== WIZARD-ACTIVE LAYOUT OVERRIDES ===== */
+/* Smaller header and no menu when inside the wizard */
+
+.wizard-active .header-content .menu-nav {
+  display: none;
+}
+
+.wizard-active header h1 {
+  margin: 0.5rem 0 0 1.5rem;
+  font-size: var(--fs-700);
+}
+
+.wizard-active main {
+  padding-top: 3.5rem;
+  @media (width > 760px) {
+    padding-top: 5rem;
+  }
+}
+
 #block-one,
 #block-two {
   position: relative;
@@ -883,10 +902,10 @@ header h1 {
 
 /* ===== WIZARD STYLES ===== */
 
-.wizard-narrow {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.wizard-window {
+  max-width: 90%;
+  margin-top: 5rem;
+  margin-inline: auto;
 }
 
 /* Progress Bar */
@@ -1258,6 +1277,8 @@ header h1 {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  max-width: 90%;
+  margin: 0 auto;
 }
 
 .wizard-nav-main {
