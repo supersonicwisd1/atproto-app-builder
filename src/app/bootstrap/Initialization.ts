@@ -6,11 +6,9 @@ import {
   loadWizardState,
   setWizardState,
   initializeWizardState,
-  saveWizardState,
   getWizardState,
   hasMeaningfulState,
 } from '../state/WizardState';
-import { collectCurrentStepData } from '../state/DataCollector';
 import {
   goToNextStep,
   goToPreviousStep,
@@ -61,19 +59,11 @@ export function initializeApp(): void {
   // Wire up navigation buttons
   const nextBtn = document.getElementById('wizard-next');
   const backBtn = document.getElementById('wizard-back');
-  const saveBtn = document.getElementById('wizard-save');
-
   if (nextBtn) {
     nextBtn.addEventListener('click', goToNextStep);
   }
   if (backBtn) {
     backBtn.addEventListener('click', goToPreviousStep);
-  }
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      collectCurrentStepData();
-      saveWizardState(getWizardState());
-    });
   }
 
   // Wire up App Wizard menu link

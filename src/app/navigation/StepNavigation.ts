@@ -108,17 +108,4 @@ export function updateProgressBar(): void {
     nextBtn.classList.toggle('wizard-solo', wizardState.currentStep === 0);
   }
 
-  // Show Save Progress button and compact nav layout on step 2+
-  const saveBtn = document.getElementById('wizard-save');
-  if (saveBtn) {
-    saveBtn.style.display = wizardState.currentStep >= 2 ? '' : 'none';
-  }
-
-  const navMain = document.querySelector('.wizard-nav-main');
-  if (navMain) {
-    navMain.classList.toggle(
-      'wizard-nav-compact',
-      wizardState.currentStep >= 2
-    );
-  }
 }

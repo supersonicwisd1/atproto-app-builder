@@ -1312,10 +1312,6 @@ header h1 {
   width: 100%;
 }
 
-.wizard-nav-main.wizard-nav-compact {
-  width: auto;
-  margin-left: auto;
-}
 
 /* Review Section */
 .wizard-review {
