@@ -911,17 +911,20 @@ header h1 {
 }
 
 .wizard-intro {
-  padding: 1rem;
+  max-width: 90%;
+  padding: 2rem;
+}
+
+@media (width >= 1024px) {
+  .wizard-intro {
+    max-width: 66ch;
+  }
 }
 
 /* Four-column grid layout */
 .wizard-columns {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-}
-
-.wizard-column {
-  padding: 1rem;
 }
 
 .wizard-column + .wizard-column {
@@ -965,6 +968,7 @@ header h1 {
 /* Step Content */
 .wizard-step {
   position: relative;
+  padding: 1rem;
   p,
   ol,
   ul {
@@ -1294,6 +1298,12 @@ header h1 {
   flex-wrap: wrap;
   max-width: 90%;
   margin: 0 auto;
+}
+
+@media (width >= 1024px) {
+  .wizard-step-intro .wizard-nav {
+    max-width: 66ch;
+  }
 }
 
 .wizard-nav-main {

@@ -30,6 +30,7 @@ export function renderCurrentStep(): void {
 
   // Toggle body class for wizard-specific layout
   document.body.classList.toggle('wizard-active', wizardState.currentStep >= 1);
+  document.body.classList.toggle('wizard-step-intro', wizardState.currentStep === 1);
 
   switch (wizardState.currentStep) {
     case 0:
