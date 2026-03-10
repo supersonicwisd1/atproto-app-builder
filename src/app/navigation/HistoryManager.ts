@@ -150,7 +150,7 @@ export function initializeHistoryManager(): void {
   window.addEventListener('popstate', handlePopState);
 
   // Warn before browser close/refresh when wizard has meaningful data
-  window.addEventListener('beforeunload', handleBeforeUnload);
+  // window.addEventListener('beforeunload', handleBeforeUnload);
 
   // Check if URL contains a step parameter and sync state
   const urlStep = getStepFromURL();

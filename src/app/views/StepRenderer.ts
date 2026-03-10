@@ -7,7 +7,7 @@ import { setupTooltips } from '../bootstrap/Initialization';
 import { renderStep0 } from './Step0';
 import { renderStep1 } from './Step1';
 // import { renderStep1 } from './deprecatedStep1AppInfo';
-import { renderStep2, wireStep2Events } from './deprecatedStep2RecordTypes';
+import { renderStep2 } from './Step2';
 import { renderStep3, wireStep3Events } from './deprecatedStep3Fields';
 import { renderStep4, wireStep4Events } from './deprecatedStep4Queries';
 import { renderStep5, wireStep5Events } from './deprecatedStep5Procedures';
@@ -41,7 +41,6 @@ export function renderCurrentStep(): void {
       break;
     case 2:
       container.innerHTML = renderStep2();
-      wireStep2Events();
       break;
     case 3:
       container.innerHTML = renderStep3();

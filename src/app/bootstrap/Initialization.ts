@@ -19,9 +19,12 @@ import {
 import { renderCurrentStep } from '../views/StepRenderer';
 import { setupDialogHandlers } from '../dialogs/DialogHandlers';
 import { setupWizardOps } from './WizardOps';
-import { initializeHistoryManager, pushStepToHistory } from '../navigation/HistoryManager';
+import {
+  initializeHistoryManager,
+  pushStepToHistory,
+} from '../navigation/HistoryManager';
 
-export let setupTooltips: () => void;
+export let setupTooltips: any;
 
 export function initializeApp(): void {
   // Setup window.wizardOps for onclick handlers
@@ -34,16 +37,17 @@ export function initializeApp(): void {
     // Only show resume dialog if there's actual wizard data to resume
     // Steps 0 and 1 are intro pages with no user data worth resuming
     setWizardState(saved.state);
-    // Show resume dialog
-    const savedDate = new Date(saved.state.lastSaved);
-    const resumeDate = document.getElementById('resume-date');
-    if (resumeDate) {
-      resumeDate.textContent = savedDate.toLocaleString();
-    }
-    const dialog = document.getElementById(
-      'resume-dialog'
-    ) as HTMLDialogElement;
-    if (dialog) dialog.showModal();
+    // TODO: uncomment below before deploying (maybe use an env var to turn this off in the future)
+    // Resume dialog disabled during development
+    // const savedDate = new Date(saved.state.lastSaved);
+    // const resumeDate = document.getElementById('resume-date');
+    // if (resumeDate) {
+    //   resumeDate.textContent = savedDate.toLocaleString();
+    // }
+    // const dialog = document.getElementById(
+    //   'resume-dialog'
+    // ) as HTMLDialogElement;
+    // if (dialog) dialog.showModal();
   } else {
     setWizardState(initializeWizardState());
   }
@@ -187,7 +191,7 @@ export function initializeApp(): void {
   }
 
   // Export setupTooltips for use after step renders
-  setupTooltips = function() {
+  setupTooltips = function () {
     document.querySelectorAll('.term').forEach((term) => {
       // Skip if already set up
       if ((term as any)._tooltipSetup) return;
@@ -235,10 +239,10 @@ export function initializeApp(): void {
   // Get Started dialog functionality
   const getStartedBtn = document.getElementById('get-started-btn');
   const getStartedDialog = document.getElementById(
-    'get-started-dialog'
+    'get-started-dialog',
   ) as HTMLDialogElement | null;
   const continueWithoutLoginBtn = document.getElementById(
-    'continue-without-login'
+    'continue-without-login',
   );
   const loginWithAtprotoBtn = document.getElementById('login-with-atproto');
   const getAtprotoIdBtn = document.getElementById('get-atproto-id');

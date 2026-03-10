@@ -904,8 +904,28 @@ header h1 {
 
 .wizard-window {
   max-width: 90%;
-  margin-top: 5rem;
-  margin-inline: auto;
+  margin: 5rem auto 2rem;
+  background-color: white;
+  border: 3px solid var(--primary-lightish);
+  border-radius: 8px;
+}
+
+.wizard-intro {
+  padding: 1rem;
+}
+
+/* Four-column grid layout */
+.wizard-columns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.wizard-column {
+  padding: 1rem;
+}
+
+.wizard-column + .wizard-column {
+  border-left: 2px solid var(--primary-lightish);
 }
 
 /* Progress Bar */
@@ -945,11 +965,6 @@ header h1 {
 /* Step Content */
 .wizard-step {
   position: relative;
-  background-color: white;
-  padding: 2rem;
-  border: 3px solid var(--primary-lightish);
-  border-radius: 8px;
-  margin-bottom: 2rem;
   p,
   ol,
   ul {
