@@ -207,7 +207,6 @@ main {
   }
 }
 
-
 header h1 {
   display: inline-block;
   color: var(--text-primary);
@@ -226,20 +225,6 @@ header h1 {
   gap: 0.5rem;
   justify-content: flex-end;
   padding: 0.5rem 2rem 0.5rem 0;
-}
-
-.header-version__name {
-  display: none;
-  font-family: var(--ff-heading);
-  font-size: 5rem;
-  line-height: 0.8;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-}
-
-.wizard-active .header-version__name {
-  display: flex;
-  align-items: center;
 }
 
 .header-version__info {
