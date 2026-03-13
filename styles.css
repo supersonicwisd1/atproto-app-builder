@@ -220,31 +220,51 @@ header h1 {
 
 .header-version {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: 0.25rem;
   justify-content: flex-end;
   padding: 0.5rem 2rem 0.5rem 0;
 }
 
 .header-version__info {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-version__number,
+.header-version__season,
+.header-version__separator {
+  font-family: var(--ff-heading);
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  letter-spacing: 0.1em;
+}
+
+.header-version__separator {
+  color: var(--text-muted);
+}
+
+.menu-nav {
+  display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 0.15rem;
 }
 
-.header-version__number {
+.menu-nav__link {
   font-family: var(--ff-heading);
-  font-size: 1.8rem;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
+  font-size: 1.6rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
 }
 
-.header-version__season {
-  font-family: var(--ff-heading);
-  font-size: 1.8rem;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
+.menu-nav__link:hover {
+  color: var(--accent);
 }
 
 @media (width <= 760px) {
