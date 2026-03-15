@@ -19,6 +19,7 @@ Built with TypeScript, Vite, vanilla JS. No framework.
 - Run `npm run build` to verify TypeScript compiles after changes
 - Run `npx vitest run` to verify tests pass after changes
 - Keep changes scoped to what the spec describes — do not refactor adjacent code
+- Use the spec's Behavioral Scenarios (including edge cases) to verify that your code handles all described paths. If you discover an edge case not covered by the spec, add it.
 
 ### After Work
 
