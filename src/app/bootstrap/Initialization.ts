@@ -20,6 +20,7 @@ import { setupWizardOps } from './WizardOps';
 import {
   initializeHistoryManager,
   pushStepToHistory,
+  guardedLeaveWizard,
 } from '../navigation/HistoryManager';
 
 export let setupTooltips: any;
@@ -33,7 +34,7 @@ export function initializeApp(): void {
 
   if (saved && !saved.isStale && hasMeaningfulState(saved.state)) {
     // Only show resume dialog if there's actual wizard data to resume
-    // Steps 0 and 1 are intro pages with no user data worth resuming
+    // Step 0 is the landing page with no user data worth resuming
     setWizardState(saved.state);
     // TODO: uncomment below before deploying (maybe use an env var to turn this off in the future)
     // Resume dialog disabled during development
@@ -66,17 +67,20 @@ export function initializeApp(): void {
     backBtn.addEventListener('click', goToPreviousStep);
   }
 
-  // Wire up App Wizard menu link
-  const appWizardLink = document.getElementById('menu-app-wizard');
-  if (appWizardLink) {
-    appWizardLink.addEventListener('click', (e) => {
-      e.preventDefault();
+  // Wire up logo/title click to navigate back to landing page from wizard
+  const headerTitle = document.querySelector('.header-title');
+  if (headerTitle) {
+    headerTitle.addEventListener('click', () => {
       const wizardState = getWizardState();
-      wizardState.currentStep = 1;
-      renderCurrentStep();
-      updateProgressBar();
-      pushStepToHistory(1);
-      window.scrollTo(0, 0);
+      if (wizardState.currentStep >= 2) {
+        guardedLeaveWizard(() => {
+          wizardState.currentStep = 0;
+          renderCurrentStep();
+          updateProgressBar();
+          pushStepToHistory(0);
+          window.scrollTo(0, 0);
+        });
+      }
     });
   }
 

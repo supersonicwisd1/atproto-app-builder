@@ -10,7 +10,7 @@ The Requirements panel is the first section in the ATProto App Builder's sidebar
 - Requirements panel UI within the sidebar+workspace layout
 - Empty state with intro content (absorbed from the deleted Step 1 page)
 - CRUD operations for three requirement types
-- Delete Step 1 files (`AboutAppBuilder.html`, `Step1.ts`) and update `StepRenderer.ts`
+- Verify Step 1 files are already deleted (handled by `landing-page-header-redesign.md`)
 
 **Out of scope:**
 - Sidebar+workspace layout shell (covered by layout migration spec, Phases 0–1)
@@ -184,9 +184,7 @@ The Requirements panel is the first section in the ATProto App Builder's sidebar
 ## Files Likely Affected
 
 - `src/app/views/panels/RequirementsPanel.ts` — new, main panel renderer
-- `src/app/views/AboutAppBuilder.html` — delete
-- `src/app/views/Step1.ts` — delete
-- `src/app/views/StepRenderer.ts` — remove Step 1 routing
+- `src/app/views/StepRenderer.ts` — verify Step 1 routing already removed (by `landing-page-header-redesign.md`)
 - `src/types/wizard.ts` — add `requirements` field to `WizardState`
 - `tests/views/RequirementsPanel.test.ts` — new
 

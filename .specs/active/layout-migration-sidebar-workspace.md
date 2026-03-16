@@ -6,7 +6,7 @@
 ## What
 Replace the current sequential step-based wizard (steps 2–7) with a sidebar + workspace layout based on mockup 3b. The sidebar shows a vertical progress track with 4 sections (Requirements, Data, Components, Views), each with summary item lists. The workspace shows the active section's full editing interface. Navigation between sections is non-linear — users can click any section at any time.
 
-Step 0 (landing page) remains as-is. Step 1 (intro) is being removed — its key content (what a decentralized app is, example app ideas) moves into the Requirements panel's empty state. The sidebar layout replaces what was previously steps 2–7.
+Step 0 (landing page) and the global header are redesigned in a prerequisite spec (`landing-page-header-redesign.md`), which also deletes Step 1. That spec should be implemented first. The sidebar layout replaces what was previously steps 2–7. The landing-to-wizard transition animation (sidebar slide-in, overlay flash, header shrink) is demonstrated in `mockups/4-landing-to-wizard-transition.html` and should be implemented as part of Phase 1 below.
 
 ## Why
 The current sequential step flow doesn't match the iterative nature of app design. Users need to move freely between defining requirements, data types, components, and views — and see the state of other sections while working in one. The sidebar layout provides persistent cross-section visibility with ample workspace for forms and content.
@@ -62,6 +62,13 @@ The current sequential step flow doesn't match the iterative nature of app desig
 
 ## Migration Phases
 
+### Prerequisite: Landing Page & Header Redesign
+See `landing-page-header-redesign.md`. Must be completed before starting this migration. That spec handles:
+- Global header resize (smaller, 72px fixed height)
+- Step 1 deletion (files and StepRenderer references)
+- Version info and "App Wizard" link removal
+- Login link restyle
+
 ### Phase 0: Preparation
 - [ ] Delete orphan HTML files: `ComparisonChart.html`, `GettingStarted.html`, `GetStartedButton.html`
 - [ ] Add the sidebar + workspace HTML template (based on mockup 3b) as new view files
@@ -76,6 +83,7 @@ The current sequential step flow doesn't match the iterative nature of app desig
 - [ ] Wire `StepRenderer.ts` to render `WorkspaceLayout` when `currentStep === 2` (replacing the WIP step2.html)
 - [ ] Implement sidebar section switching (click handler updates active panel)
 - [ ] Implement progress track rendering (filled/hollow dots, progress line)
+- [ ] Implement the landing-to-wizard transition animation per `mockups/4-landing-to-wizard-transition.html`: sidebar slides in from the left (CSS transform, 500ms cubic-bezier), content area shifts right via margin-left, header shrinks from landing to wizard-active sizes
 - [ ] Verify build passes; manual test: can navigate to step 2 and see sidebar layout with empty panels
 
 ### Phase 2: Data Panel (highest existing code reuse)
@@ -88,7 +96,7 @@ The current sequential step flow doesn't match the iterative nature of app desig
 
 ### Phase 3: Requirements Panel (new functionality)
 See `requirements-panel.md` for full behavioral spec, including empty-state intro content.
-- [ ] Delete Step 1 files (`AboutAppBuilder.html`, `Step1.ts`) and update `StepRenderer.ts`
+- [ ] Verify Step 1 files are already deleted (handled by `landing-page-header-redesign.md`)
 - [ ] Design and implement the Requirements panel (this is new — requirements are a new concept not in the old wizard)
 - [ ] Implement empty state with intro content from the deleted Step 1 (what a decentralized app is, example app ideas)
 - [ ] Determine how requirements map to the existing state model (may need to extend `WizardState`)

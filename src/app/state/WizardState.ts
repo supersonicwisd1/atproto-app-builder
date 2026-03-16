@@ -83,7 +83,7 @@ export function clearWizardState(): void {
 
 /**
  * Check if state has meaningful data worth resuming.
- * Steps 0 and 1 are intro pages with no user data.
+ * Step 0 is the landing page with no user data.
  * We only consider sessions worth resuming if they're on step 2+
  * or have any actual wizard data entered.
  */

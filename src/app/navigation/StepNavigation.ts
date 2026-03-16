@@ -31,9 +31,13 @@ export function goToNextStep(): void {
   collectCurrentStepData();
 
   if (wizardState.currentStep < 7) {
-    wizardState.currentStep++;
+    // Skip deleted Step 1 — go directly from landing (0) to wizard (2)
+    if (wizardState.currentStep === 0) {
+      wizardState.currentStep = 2;
+    } else {
+      wizardState.currentStep++;
+    }
     // Only save state when moving to step 2+ (actual wizard content)
-    // Steps 0 and 1 are intro pages - no need to save or restore those
     if (wizardState.currentStep >= 2) {
       saveWizardState(wizardState);
     }
@@ -52,8 +56,8 @@ export function goToPreviousStep(): void {
 
   if (wizardState.currentStep <= 0) return;
 
-  // Step 1 → 0: guard against leaving wizard with unsaved progress
-  if (wizardState.currentStep === 1) {
+  // Step 2 → 0: guard against leaving wizard with unsaved progress
+  if (wizardState.currentStep === 2) {
     collectCurrentStepData();
     guardedLeaveWizard(() => {
       wizardState.currentStep = 0;
@@ -67,8 +71,6 @@ export function goToPreviousStep(): void {
 
   collectCurrentStepData();
   wizardState.currentStep--;
-  // Only save state when on step 2+ (actual wizard content)
-  // Steps 0 and 1 are intro pages - no need to save or restore those
   if (wizardState.currentStep >= 2) {
     saveWizardState(wizardState);
   }
@@ -103,8 +105,13 @@ export function updateProgressBar(): void {
 
   const nextBtn = document.getElementById('wizard-next');
   if (nextBtn) {
-    nextBtn.textContent =
-      wizardState.currentStep === 7 ? 'Generate App' : 'Next';
+    if (wizardState.currentStep === 0) {
+      nextBtn.textContent = 'Start Building \u2192';
+    } else if (wizardState.currentStep === 7) {
+      nextBtn.textContent = 'Generate App';
+    } else {
+      nextBtn.textContent = 'Next';
+    }
     nextBtn.classList.toggle('wizard-solo', wizardState.currentStep === 0);
   }
 

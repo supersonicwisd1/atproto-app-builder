@@ -26,11 +26,11 @@ export function getStepFromURL(): number | null {
     const stepParam = params.get(STEP_PARAM);
     if (stepParam !== null) {
       const step = parseInt(stepParam, 10);
-      if (!isNaN(step) && step >= 1 && step <= 7) {
+      if (!isNaN(step) && step >= 2 && step <= 7) {
         return step;
       }
     }
-    return 1;
+    return 2;
   }
 
   return 0;
@@ -80,7 +80,7 @@ function navigateToStep(step: number): void {
  */
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
   const wizardState = getWizardState();
-  if (wizardState.currentStep >= 1 && hasMeaningfulState(wizardState)) {
+  if (wizardState.currentStep >= 2 && hasMeaningfulState(wizardState)) {
     event.preventDefault();
   }
 }
@@ -128,7 +128,7 @@ function handlePopState(event: PopStateEvent): void {
   const wizardState = getWizardState();
 
   // Intercept wizard→landing back-navigation
-  if (targetStep === 0 && wizardState.currentStep >= 1 && hasMeaningfulState(wizardState)) {
+  if (targetStep === 0 && wizardState.currentStep >= 2 && hasMeaningfulState(wizardState)) {
     // Push current step back to undo the browser back
     updateURLForStep(wizardState.currentStep, false);
     guardedLeaveWizard(() => {

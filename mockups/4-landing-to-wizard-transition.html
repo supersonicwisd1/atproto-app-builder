@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mockup 4: Landing Page → Wizard Transition</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      @font-face {
+        font-family: dirty-ego;
+        src: url(../fonts/DirtyEgo/Truetype/DIRTYEGO.TTF);
+      }
+      @font-face {
+        font-family: fira-sans;
+        src: url(../fonts/FiraSans/FiraSans-Medium.otf);
+      }
+
+      :root {
+        --ff-body:
+          'fira-sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --ff-heading: 'dirty-ego', serif;
+
+        --bg-primary: #08080f;
+        --bg-surface: #14141f;
+        --bg-surface-2: #1a1a28;
+        --bg-elevated: #22222e;
+        --text-primary: #e8e8f0;
+        --text-secondary: #b0b0c0;
+        --text-muted: #8585a0;
+        --accent: #00e5ff;
+        --accent-hover: #44f0ff;
+        --accent-glow: rgba(0, 229, 255, 0.15);
+        --accent-red: #ff3355;
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --border-accent: rgba(0, 229, 255, 0.2);
+        --progress-muted: #2a2a3a;
+
+        --sidebar-width: 260px;
+        --header-height: 72px;
+      }
+
+      body {
+        font-family: var(--ff-body);
+        background: var(--bg-primary);
+        background-image:
+          radial-gradient(
+            ellipse at 15% 30%,
+            rgba(0, 229, 255, 0.04) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 85% 60%,
+            rgba(255, 51, 85, 0.035) 0%,
+            transparent 55%
+          );
+        color: var(--text-primary);
+        line-height: 1.5;
+        font-size: 0.9375rem;
+        overflow-x: hidden;
+      }
+
+      /* ===== HEADER ===== */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: var(--header-height);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 0 1.5rem 0.75rem;
+        background-color: rgba(8, 8, 15, 0.88);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        z-index: 100;
+        transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          var(--accent-red),
+          var(--accent)
+        );
+        opacity: 0.55;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+      }
+
+      .header-logo {
+        height: 2rem;
+        width: auto;
+        flex-shrink: 0;
+        transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @media (width > 480px) {
+        .header-logo {
+          height: 3rem;
+        }
+      }
+
+      .header h1 {
+        font-family: var(--ff-heading);
+        font-size: 1.8rem;
+        line-height: 0.8;
+        color: var(--text-primary);
+        transition: font-size 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
+      }
+      @media (width > 480px) {
+        .header h1 {
+          font-size: 3rem;
+        }
+      }
+
+      /* Glitch animation — landing state only */
+      .state-landing .header h1 {
+        animation: hero-glitch 10s infinite 3s;
+      }
+      .state-wizard .header h1 {
+        animation: none;
+        font-size: 2.25rem;
+      }
+      .state-wizard .header-logo {
+        height: 2.5rem;
+      }
+
+      .header-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.15rem;
+        align-self: flex-end;
+      }
+
+      .header-version {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .header-version span {
+        font-family: var(--ff-heading);
+        font-size: 1.4rem;
+        color: var(--text-primary);
+        letter-spacing: 0.1em;
+      }
+      .header-version .sep {
+        color: var(--text-muted);
+      }
+
+      .menu-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .login-btn {
+        font-family: var(--ff-heading);
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        letter-spacing: 0.08em;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        line-height: 0.8;
+        background: transparent;
+        transition:
+          color 0.2s,
+          border-color 0.2s,
+          background-color 0.2s;
+      }
+      @media (width > 480px) {
+        .login-btn {
+          font-size: 1.6rem;
+          padding: 0.3rem 1.1rem;
+          border: 1px solid var(--border-subtle);
+          border-radius: 5px;
+        }
+      }
+      .login-btn:hover {
+        color: var(--accent);
+        border-color: var(--border-accent);
+        background-color: var(--accent-glow);
+      }
+
+      @media (width <= 480px) {
+        .header-version {
+          display: none;
+        }
+      }
+
+      @keyframes hero-glitch {
+        0%,
+        100% {
+          text-shadow: none;
+          transform: translate(0, 0);
+        }
+        49% {
+          text-shadow: none;
+          transform: translate(0, 0);
+        }
+        49.5% {
+          text-shadow:
+            3px 0 var(--accent-red),
+            -3px 0 var(--accent);
+          transform: translate(2px, 0);
+        }
+        50% {
+          text-shadow:
+            -2px 0 var(--accent-red),
+            2px 0 var(--accent);
+          transform: translate(-1px, 1px);
+        }
+        50.5% {
+          text-shadow:
+            1px 0 var(--accent-red),
+            -1px 0 var(--accent);
+          transform: translate(1px, -1px);
+        }
+        51% {
+          text-shadow: none;
+          transform: translate(0, 0);
+        }
+      }
+
+      /* ===== MAIN SHELL ===== */
+      .shell {
+        margin-top: var(--header-height);
+        min-height: calc(100vh - var(--header-height));
+        display: flex;
+        position: relative;
+      }
+
+      /* ===== SIDEBAR ===== */
+      .sidebar {
+        width: var(--sidebar-width);
+        flex-shrink: 0;
+        background: var(--bg-surface-2);
+        border-right: 1px solid var(--border-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        transform: translateX(calc(-1 * var(--sidebar-width)));
+        opacity: 0;
+        transition:
+          transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
+        z-index: 50;
+      }
+      .state-wizard .sidebar {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      /* Progress track */
+      .sidebar-nav {
+        padding: 0.5rem 0;
+        position: relative;
+      }
+      .sidebar-nav::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 24px;
+        bottom: 24px;
+        width: 2px;
+        background: var(--progress-muted);
+      }
+      .progress-fill {
+        position: absolute;
+        left: 20px;
+        top: 24px;
+        width: 2px;
+        background: var(--accent);
+        z-index: 1;
+        transition: height 0.4s ease;
+      }
+
+      .sidebar-section {
+        position: relative;
+        z-index: 2;
+      }
+      .step-number {
+        font-size: 0.5625rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.25rem 0.875rem 0 2.75rem;
+        opacity: 0.6;
+      }
+      .sidebar-header {
+        padding: 0.625rem 0.875rem 0.625rem 2.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+        position: relative;
+      }
+      .sidebar-header:hover {
+        background: var(--bg-elevated);
+      }
+      .sidebar-section.active .sidebar-header {
+        background: var(--accent-glow);
+      }
+
+      .sidebar-header::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid var(--progress-muted);
+        background: var(--bg-surface-2);
+        transition:
+          border-color 0.3s,
+          background 0.3s,
+          box-shadow 0.3s;
+        z-index: 3;
+      }
+      .sidebar-section.active .sidebar-header::before {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 0 3px var(--accent-glow),
+          0 0 8px var(--accent-glow);
+        background: var(--bg-surface-2);
+      }
+      .sidebar-section.has-items .sidebar-header::before {
+        border-color: var(--accent);
+        background: var(--accent);
+        box-shadow: 0 0 6px var(--accent-glow);
+      }
+      .sidebar-section.active.has-items .sidebar-header::before {
+        background: var(--accent);
+      }
+
+      .sidebar-header h4 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .sidebar-section.active .sidebar-header h4 {
+        color: var(--accent);
+      }
+
+      .sidebar-header .badge {
+        background: var(--progress-muted);
+        color: var(--text-muted);
+        font-size: 0.625rem;
+        padding: 0.0625rem 0.375rem;
+        border-radius: 99px;
+        font-weight: 600;
+      }
+
+      .sidebar-items {
+        padding: 0 0.625rem 0.5rem 2.75rem;
+      }
+      .sidebar-item {
+        padding: 0.3125rem 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: background 0.1s;
+      }
+      .sidebar-item:hover {
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+      }
+      .sidebar-item-empty {
+        padding: 0.3125rem 0.5rem;
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        font-style: italic;
+        opacity: 0.5;
+      }
+
+      /* ===== WORKSPACE / CONTENT AREA ===== */
+      .content-area {
+        flex: 1;
+        min-height: calc(100vh - var(--header-height));
+        transition: margin-left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-left: 0;
+      }
+      .state-wizard .content-area {
+        margin-left: var(--sidebar-width);
+      }
+
+      /* ===== LANDING CONTENT ===== */
+      .landing {
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s ease;
+      }
+      .state-wizard .landing {
+        display: none;
+      }
+
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .landing-hero {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 3rem 2rem 4rem;
+        animation: fade-up 0.9s ease both;
+      }
+      .landing-hero__lead {
+        font-size: clamp(1.4rem, 3vw, 2.2rem);
+        line-height: 1.4;
+        color: var(--text-primary);
+      }
+      .landing-hero__body {
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        line-height: 1.7;
+        color: var(--text-secondary);
+      }
+      .landing-hero__highlight {
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      /* ===== VERSUS PANELS ===== */
+      .landing-versus {
+        display: flex;
+        flex-direction: column;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem 3rem;
+        animation: fade-up 0.9s ease 0.25s both;
+      }
+      @media (width > 860px) {
+        .landing-versus {
+          flex-direction: row;
+          align-items: stretch;
+        }
+      }
+
+      .landing-versus__panel {
+        flex: 1;
+        padding: 2rem 1.75rem;
+        border-radius: 10px;
+        position: relative;
+      }
+      .landing-versus__panel--old {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+      }
+      .landing-versus__panel--new {
+        background-color: rgba(0, 229, 255, 0.04);
+        border: 1px solid rgba(0, 229, 255, 0.12);
+      }
+
+      .landing-versus__label {
+        display: inline-block;
+        font-family: monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 0.25rem 0.7rem;
+        border-radius: 3px;
+        margin-bottom: 0.75rem;
+      }
+      .landing-versus__panel--old .landing-versus__label {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: var(--text-muted);
+      }
+      .landing-versus__panel--new .landing-versus__label {
+        background-color: var(--accent-glow);
+        color: var(--accent);
+      }
+
+      .landing-versus__panel h2 {
+        font-family: var(--ff-heading);
+        font-size: clamp(1.8rem, 3.5vw, 3rem);
+        margin-bottom: 0.4rem;
+        line-height: 1;
+      }
+      .landing-versus__panel--old h2 {
+        color: #7e7e98;
+      }
+      .landing-versus__panel--new h2 {
+        color: var(--text-primary);
+      }
+
+      .landing-versus__subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+      }
+      .landing-versus__panel--old .landing-versus__subtitle {
+        color: var(--text-muted);
+      }
+      .landing-versus__panel--new .landing-versus__subtitle {
+        color: #8888a0;
+      }
+
+      .landing-versus__diagram {
+        margin-bottom: 1.25rem;
+        padding: 0.5rem 0;
+      }
+      .landing-versus__diagram img {
+        max-width: 100%;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .landing-versus__list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .landing-versus__list li {
+        font-size: clamp(0.85rem, 1.3vw, 1rem);
+        line-height: 1.6;
+        padding: 0.7rem 0;
+      }
+      .landing-versus__panel--old .landing-versus__list li {
+        color: var(--text-muted);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .landing-versus__panel--new .landing-versus__list li {
+        color: var(--text-secondary);
+        border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+      }
+      .landing-versus__list li:last-child {
+        border-bottom: none;
+      }
+      .landing-versus__list li em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      .landing-versus__divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem 0;
+      }
+      .landing-versus__divider span {
+        font-family: var(--ff-heading);
+        font-size: 2.2rem;
+        color: #606080;
+      }
+      @media (width > 860px) {
+        .landing-versus__divider {
+          padding: 0 1rem;
+          writing-mode: vertical-lr;
+        }
+        .landing-versus__divider span {
+          font-size: 2.8rem;
+          transform: rotate(180deg);
+        }
+      }
+
+      /* ===== CTA ===== */
+      .landing-cta {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 2rem 2rem;
+        animation: fade-up 0.9s ease 0.5s both;
+      }
+      .landing-cta p {
+        font-family: var(--ff-heading);
+        font-size: clamp(1.6rem, 4.5vw, 3.5rem);
+        line-height: 1.15;
+        color: #8888a0;
+      }
+      .landing-cta p em {
+        font-style: normal;
+        color: var(--text-primary);
+      }
+
+      .landing-start {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+        animation: fade-up 0.9s ease 0.65s both;
+      }
+
+      .start-btn {
+        background: linear-gradient(135deg, #00c8dd, var(--accent));
+        color: var(--bg-primary);
+        border: none;
+        font-family: var(--ff-body);
+        font-weight: 700;
+        font-size: 1.15rem;
+        padding: 1rem 2.5rem;
+        border-radius: 6px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 0 20px var(--accent-glow);
+      }
+      .start-btn:hover {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        transform: translateY(-2px);
+        box-shadow: 0 0 35px rgba(0, 229, 255, 0.35);
+      }
+
+      /* ===== WIZARD WORKSPACE ===== */
+      .workspace {
+        display: none;
+        flex-direction: column;
+        min-height: calc(100vh - var(--header-height));
+        background: var(--bg-surface);
+      }
+      .state-wizard .workspace {
+        display: flex;
+      }
+
+      .workspace-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .workspace-header h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+      }
+
+      .workspace-body {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .workspace-desc {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+        max-width: 65ch;
+      }
+
+      .add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        background: transparent;
+        border: 1px dashed var(--border-accent);
+        color: var(--accent);
+        padding: 0.5rem 0.875rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8125rem;
+        transition: background 0.2s;
+      }
+      .add-btn:hover {
+        background: var(--accent-glow);
+      }
+
+      .empty-workspace {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+      }
+      .empty-workspace .empty-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.3;
+      }
+      .empty-workspace p {
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        max-width: 45ch;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+      }
+
+      /* Next step prompt */
+      .next-step {
+        margin-top: auto;
+        padding-top: 1.5rem;
+      }
+      .next-step-card {
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-accent);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        transition: box-shadow 0.2s;
+      }
+      .next-step-card:hover {
+        box-shadow: 0 2px 12px rgba(0, 229, 255, 0.1);
+      }
+      .next-step-label {
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+      }
+      .next-step-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+      }
+      .next-step-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+      .next-step-btn {
+        background: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          background 0.2s,
+          color 0.2s;
+        flex-shrink: 0;
+      }
+      .next-step-btn:hover {
+        background: var(--accent);
+        color: var(--bg-primary);
+      }
+      .next-step-arrow {
+        display: inline-block;
+        margin-left: 0.375rem;
+        transition: transform 0.2s;
+      }
+      .next-step-btn:hover .next-step-arrow {
+        transform: translateX(3px);
+      }
+
+      /* ===== TRANSITION OVERLAY ===== */
+      .transition-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-primary);
+        z-index: 200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .transition-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      /* ===== BACK BUTTON (wizard state) ===== */
+      .back-to-landing {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        z-index: 60;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+        display: none;
+      }
+      .state-wizard .back-to-landing {
+        display: block;
+      }
+      .back-to-landing:hover {
+        color: var(--accent);
+        border-color: var(--border-accent);
+      }
+
+      /* ===== MOCKUP LABEL ===== */
+      .mockup-label {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: var(--accent);
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        padding: 0.5rem;
+        opacity: 0.5;
+        z-index: 300;
+        background: rgba(8, 8, 15, 0.9);
+      }
+    </style>
+  </head>
+  <body class="state-landing">
+    <div class="mockup-label">
+      Mockup 4 — Landing Page to Wizard Transition (click "Start Building" to
+      see)
+    </div>
+
+    <!-- Transition flash -->
+    <div class="transition-overlay" id="transition-overlay"></div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="header-title">
+        <svg
+          class="header-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 120"
+          aria-label="WHAT IS AT logo"
+        >
+          <path
+            d="M4,2 L8,5 L11,3 L15,6 L19,1 L22,4 L25,2 L29,5 L33,1 L36,4 L39,2 L43,6 L46,3 L50,0 L53,4 L57,2 L60,5 L63,1 L67,4 L70,2 L74,6 L77,3 L81,1 L84,5 L88,3 L91,6 L95,2 L98,4
+               L97,8 L99,11 L96,15 L98,19 L95,22 L97,26 L100,30 L97,34 L99,38 L96,41 L98,45 L95,49 L97,53 L100,56 L97,60 L99,64 L96,68 L98,72 L95,75 L97,79 L100,83 L97,87 L99,91 L96,95 L98,99 L95,103 L97,107 L99,111 L96,115 L98,119
+               L94,117 L91,120 L87,116 L84,119 L80,117 L76,120 L73,116 L69,119 L66,117 L62,120 L58,116 L55,119 L51,121 L48,117 L44,120 L41,116 L37,119 L34,117 L30,120 L27,116 L23,119 L20,117 L16,120 L13,116 L9,119 L6,117
+               L3,113 L1,110 L4,106 L2,103 L5,99 L1,96 L3,92 L0,89 L4,85 L2,82 L5,78 L1,75 L3,71 L0,68 L4,64 L2,61 L5,57 L1,54 L3,50 L0,47 L4,43 L2,40 L5,36 L1,33 L3,29 L0,26 L4,22 L2,19 L5,15 L1,12 L3,8 L5,5 Z"
+            fill="#9898a8"
+          />
+          <text
+            x="50"
+            y="82"
+            text-anchor="middle"
+            font-family="'dirty-ego', serif"
+            font-weight="600"
+            font-size="72"
+            fill="#14141f"
+          >
+            @?
+          </text>
+        </svg>
+        <h1>reclaim the web</h1>
+      </div>
+      <div class="header-right">
+        <nav class="menu-nav">
+          <a href="#" class="login-btn">Login</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ===== MAIN SHELL ===== -->
+    <div class="shell">
+      <!-- Sidebar (hidden initially, slides in on wizard state) -->
+      <aside class="sidebar">
+        <div class="sidebar-nav" id="sidebar-nav">
+          <div class="progress-fill" id="progress-fill"></div>
+
+          <!-- Step 1: Requirements (was Step 2, now first after removing old Step 1) -->
+          <div
+            class="sidebar-section active"
+            data-section="requirements"
+            data-step="0"
+          >
+            <div class="step-number">Step 1</div>
+            <div class="sidebar-header" onclick="switchSection('requirements')">
+              <h4>Requirements</h4>
+              <span class="badge">0</span>
+            </div>
+            <div class="sidebar-items">
+              <div class="sidebar-item-empty">None yet</div>
+            </div>
+          </div>
+
+          <!-- Step 2: Data -->
+          <div class="sidebar-section" data-section="data" data-step="1">
+            <div class="step-number">Step 2</div>
+            <div class="sidebar-header" onclick="switchSection('data')">
+              <h4>Data</h4>
+              <span class="badge">0</span>
+            </div>
+            <div class="sidebar-items">
+              <div class="sidebar-item-empty">None yet</div>
+            </div>
+          </div>
+
+          <!-- Step 3: Components -->
+          <div class="sidebar-section" data-section="components" data-step="2">
+            <div class="step-number">Step 3</div>
+            <div class="sidebar-header" onclick="switchSection('components')">
+              <h4>Components</h4>
+              <span class="badge">0</span>
+            </div>
+            <div class="sidebar-items">
+              <div class="sidebar-item-empty">None yet</div>
+            </div>
+          </div>
+
+          <!-- Step 4: Views -->
+          <div class="sidebar-section" data-section="views" data-step="3">
+            <div class="step-number">Step 4</div>
+            <div class="sidebar-header" onclick="switchSection('views')">
+              <h4>Views</h4>
+              <span class="badge">0</span>
+            </div>
+            <div class="sidebar-items">
+              <div class="sidebar-item-empty">None yet</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content area (landing page OR workspace) -->
+      <div class="content-area">
+        <!-- LANDING PAGE CONTENT -->
+        <div class="landing">
+          <section class="landing-hero">
+            <p>
+              <span class="landing-hero__lead"
+                >Platforms take your data, your identity, your choices.</span
+              >
+              <span class="landing-hero__body"
+                >&ThickSpace;The
+                <strong class="landing-hero__highlight">AT Protocol</strong>
+                lets you take them back &mdash; build decentralized web apps for
+                yourself, your friends, or the world.</span
+              >
+            </p>
+          </section>
+
+          <section class="landing-versus">
+            <div class="landing-versus__panel landing-versus__panel--old">
+              <span class="landing-versus__label">Their Web</span>
+              <h2>CENTRALIZED</h2>
+              <p class="landing-versus__subtitle">
+                The application owns your identity and data
+              </p>
+              <div class="landing-versus__diagram">
+                <img
+                  src="../media/centralized_architecture.svg"
+                  alt="Centralized Architecture Diagram"
+                />
+              </div>
+              <ul class="landing-versus__list">
+                <li>
+                  Each app owns all data about you &mdash; and won't let you see
+                  or change it
+                </li>
+                <li>You can't leave because everyone you know is locked in</li>
+                <li>If you leave anyway, your data stays behind</li>
+                <li>
+                  Algorithms optimize for &ldquo;engagement&rdquo; &mdash; even
+                  through manipulation and hate
+                </li>
+              </ul>
+            </div>
+
+            <div class="landing-versus__divider" aria-hidden="true">
+              <span>vs</span>
+            </div>
+
+            <div class="landing-versus__panel landing-versus__panel--new">
+              <span class="landing-versus__label">Your Web</span>
+              <h2>DECENTRALIZED</h2>
+              <p class="landing-versus__subtitle">
+                You own your identity and data
+              </p>
+              <div class="landing-versus__diagram">
+                <img
+                  src="../media/decentralized_architecture.svg"
+                  alt="Decentralized Architecture Diagram"
+                />
+              </div>
+              <ul class="landing-versus__list">
+                <li>You own your data &mdash; change it however you like</li>
+                <li>Leave any app without losing your connections</li>
+                <li>Take your data with you wherever you go</li>
+                <li>Choose apps that offer the experience <em>you</em> want</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="landing-cta">
+            <p>Ready to build something that's actually <em>yours</em>?</p>
+          </section>
+
+          <div class="landing-start">
+            <button
+              class="start-btn"
+              id="start-building"
+              onclick="enterWizard()"
+            >
+              Start Building &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- WIZARD WORKSPACE (shown after transition) -->
+        <div class="workspace">
+          <div class="workspace-header">
+            <h2>Define Requirements</h2>
+            <button class="add-btn">+ Add Requirement</button>
+          </div>
+          <div class="workspace-body">
+            <div class="workspace-desc">
+              Requirements describe what your app needs to do. Think about what
+              a user of your app needs to know, what data they need to interact
+              with, and how they navigate between views.
+            </div>
+
+            <div class="empty-workspace">
+              <div class="empty-icon">&#9634;</div>
+              <p>
+                No requirements yet. Describe what your app should do — what
+                information it shows, what data users interact with, and how
+                they move through it.
+              </p>
+              <button class="add-btn">+ Add Your First Requirement</button>
+            </div>
+
+            <div class="next-step">
+              <div class="next-step-card">
+                <div>
+                  <div class="next-step-label">Next step</div>
+                  <div class="next-step-title">Define your data types</div>
+                  <div class="next-step-desc">
+                    Once you have requirements, define the Lexicon record types
+                    your app will read and write.
+                  </div>
+                </div>
+                <button class="next-step-btn" onclick="switchSection('data')">
+                  Data <span class="next-step-arrow">&rarr;</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back button in wizard state -->
+    <button class="back-to-landing" onclick="exitWizard()">
+      &larr; Back to intro
+    </button>
+
+    <script>
+      function enterWizard() {
+        const overlay = document.getElementById('transition-overlay');
+
+        // Brief flash transition
+        overlay.classList.add('active');
+
+        setTimeout(() => {
+          document.body.classList.remove('state-landing');
+          document.body.classList.add('state-wizard');
+          window.scrollTo(0, 0);
+
+          // Let the DOM settle, then fade the overlay out
+          setTimeout(() => {
+            overlay.classList.remove('active');
+            updateProgressFill();
+          }, 100);
+        }, 300);
+      }
+
+      function exitWizard() {
+        const overlay = document.getElementById('transition-overlay');
+        overlay.classList.add('active');
+
+        setTimeout(() => {
+          document.body.classList.remove('state-wizard');
+          document.body.classList.add('state-landing');
+          window.scrollTo(0, 0);
+
+          setTimeout(() => {
+            overlay.classList.remove('active');
+          }, 100);
+        }, 300);
+      }
+
+      function switchSection(section) {
+        document
+          .querySelectorAll('.sidebar-section')
+          .forEach((s) => s.classList.remove('active'));
+        document
+          .querySelector(`[data-section="${section}"]`)
+          .classList.add('active');
+        updateProgressFill();
+      }
+
+      function updateProgressFill() {
+        const nav = document.getElementById('sidebar-nav');
+        const fill = document.getElementById('progress-fill');
+        const sections = document.querySelectorAll('.sidebar-section');
+        const activeSection = document.querySelector('.sidebar-section.active');
+
+        if (!activeSection || sections.length === 0) return;
+
+        const navRect = nav.getBoundingClientRect();
+        const firstDot = sections[0].querySelector('.sidebar-header');
+        const activeDot = activeSection.querySelector('.sidebar-header');
+
+        const firstRect = firstDot.getBoundingClientRect();
+        const activeRect = activeDot.getBoundingClientRect();
+
+        const startY = firstRect.top + firstRect.height / 2 - navRect.top;
+        const endY = activeRect.top + activeRect.height / 2 - navRect.top;
+
+        fill.style.top = startY + 'px';
+        fill.style.height = Math.max(0, endY - startY) + 'px';
+      }
+
+      window.addEventListener('resize', updateProgressFill);
+    </script>
+  </body>
+</html>

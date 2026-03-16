@@ -8,9 +8,6 @@ export function collectCurrentStepData(): void {
   const wizardState = getWizardState();
 
   switch (wizardState.currentStep) {
-    case 1:
-      collectStep1Data();
-      break;
     case 6:
       collectStep6Data();
       break;
@@ -19,19 +16,6 @@ export function collectCurrentStepData(): void {
       break;
     // Steps 2-5 collect data through dialogs/events
   }
-}
-
-function collectStep1Data(): void {
-  const wizardState = getWizardState();
-  const appName = document.getElementById('app-name') as HTMLInputElement;
-  const domain = document.getElementById('app-domain') as HTMLInputElement;
-  const description = document.getElementById('app-description') as HTMLTextAreaElement;
-  const authorName = document.getElementById('author-name') as HTMLInputElement;
-
-  if (appName) wizardState.appInfo.appName = appName.value;
-  if (domain) wizardState.appInfo.domain = domain.value;
-  if (description) wizardState.appInfo.description = description.value;
-  if (authorName) wizardState.appInfo.authorName = authorName.value;
 }
 
 function collectStep6Data(): void {
