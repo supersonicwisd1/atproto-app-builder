@@ -1,0 +1,68 @@
+<!-- Transition flash overlay -->
+<div class="transition-overlay" id="transition-overlay"></div>
+
+<!-- Sidebar (fixed-position, slides in when wizard-active) -->
+<aside class="sidebar" id="workspace-sidebar">
+  <div class="sidebar-nav" id="sidebar-nav">
+    <div class="progress-fill" id="sidebar-progress-fill"></div>
+
+    <div class="sidebar-section active" data-section="requirements">
+      <div class="step-number">Step 1</div>
+      <div class="sidebar-header" data-target="requirements">
+        <h4>Requirements</h4>
+        <span class="badge">0</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item-empty">None yet</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" data-section="data">
+      <div class="step-number">Step 2</div>
+      <div class="sidebar-header" data-target="data">
+        <h4>Data</h4>
+        <span class="badge">0</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item-empty">None yet</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" data-section="components">
+      <div class="step-number">Step 3</div>
+      <div class="sidebar-header" data-target="components">
+        <h4>Components</h4>
+        <span class="badge">0</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item-empty">None yet</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" data-section="views">
+      <div class="step-number">Step 4</div>
+      <div class="sidebar-header" data-target="views">
+        <h4>Views</h4>
+        <span class="badge">0</span>
+      </div>
+      <div class="sidebar-items">
+        <div class="sidebar-item-empty">None yet</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Workspace content area (shifts right when sidebar is visible) -->
+<div class="workspace" id="workspace-content">
+  <div class="workspace-header" id="workspace-panel-header">
+    <!-- Panel header rendered dynamically by panel renderers -->
+  </div>
+  <div class="workspace-body" id="workspace-panel-body">
+    <!-- Panel content rendered dynamically by panel renderers -->
+  </div>
+</div>
+
+<!-- Back to landing button (visible in wizard state) -->
+<button class="back-to-landing" id="back-to-landing">
+  &larr; Back to intro
+</button>
