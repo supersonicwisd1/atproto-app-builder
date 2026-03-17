@@ -38,7 +38,8 @@ export function initializeWizardState(): WizardState {
       primaryRecordType: '',
       listDisplayFields: [],
       outputMethod: 'zip'
-    }
+    },
+    requirements: []
   };
 }
 
@@ -46,6 +47,10 @@ export function setWizardState(state: WizardState): void {
   // Migrate: ensure activeSection exists for old saved states
   if (!state.activeSection) {
     state.activeSection = 'requirements';
+  }
+  // Migrate: ensure requirements array exists for old saved states
+  if (!state.requirements) {
+    state.requirements = [];
   }
   wizardState = state;
 }
@@ -107,7 +112,9 @@ export function hasMeaningfulState(state: WizardState): boolean {
   const hasQueryMethods = state.queryMethods.length > 0;
   const hasProcedureMethods = state.procedureMethods.length > 0;
 
-  return hasAppInfo || hasRecordTypes || hasQueryMethods || hasProcedureMethods;
+  const hasRequirements = (state.requirements ?? []).length > 0;
+
+  return hasAppInfo || hasRecordTypes || hasQueryMethods || hasProcedureMethods || hasRequirements;
 }
 
 export function showSaveConfirmation(): void {

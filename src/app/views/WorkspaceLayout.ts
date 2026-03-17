@@ -9,7 +9,7 @@
 import template from './workspace.html?raw';
 import { getWizardState, saveWizardState } from '../state/WizardState';
 import type { SectionName } from '../../types/wizard';
-import { renderRequirementsPanel } from './panels/RequirementsPanel';
+import { renderRequirementsPanel, wireRequirementsPanel, updateSidebar as updateRequirementsSidebar } from './panels/RequirementsPanel';
 import { renderDataPanel } from './panels/DataPanel';
 import { renderComponentsPanel } from './panels/ComponentsPanel';
 import { renderViewsPanel } from './panels/ViewsPanel';
@@ -80,6 +80,12 @@ export function switchSection(section: SectionName): void {
   const bodyEl = document.getElementById('workspace-panel-body');
   if (headerEl) headerEl.innerHTML = `<h2>${config.title}</h2>`;
   if (bodyEl) bodyEl.innerHTML = config.render();
+
+  // Wire panel-specific event handlers
+  if (section === 'requirements') {
+    wireRequirementsPanel();
+    updateRequirementsSidebar();
+  }
 
   updateProgressFill();
 }

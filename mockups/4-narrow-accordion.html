@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 4: Narrow/Compact Accordion Layout</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+  :root {
+    --bg-primary: #08080f;
+    --bg-surface: #14141f;
+    --bg-surface-2: #1a1a28;
+    --bg-elevated: #22222e;
+    --text-primary: #e8e8f0;
+    --text-secondary: #b0b0c0;
+    --text-muted: #8585a0;
+    --accent: #00e5ff;
+    --accent-hover: #44f0ff;
+    --accent-glow: rgba(0, 229, 255, 0.15);
+    --accent-red: #ff3355;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(0, 229, 255, 0.2);
+    --progress-muted: #2a2a3a;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-size: 0.9375rem;
+  }
+
+  .mockup-label {
+    text-align: center;
+    color: var(--accent);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 1rem;
+    opacity: 0.7;
+  }
+
+  .mockup-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    padding: 0 1rem 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ===== Header ===== */
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 1rem 0.625rem;
+    height: 56px;
+    background: rgba(8, 8, 15, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 2px solid;
+    border-image: linear-gradient(90deg, var(--accent), var(--accent-red), var(--accent)) 1;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+
+  .header-actions {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  /* ===== Accordion container ===== */
+
+  .accordion {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== Accordion section ===== */
+
+  .accordion-section {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--bg-surface-2);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .accordion-header:hover {
+    background: var(--bg-elevated);
+  }
+
+  .accordion-section.active .accordion-header {
+    background: var(--accent-glow);
+  }
+
+  /* Progress dot */
+  .accordion-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--progress-muted);
+    background: var(--bg-surface-2);
+    flex-shrink: 0;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+
+  .accordion-section.active .accordion-dot {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 8px var(--accent-glow);
+  }
+
+  .accordion-section.has-items .accordion-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .accordion-header-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .accordion-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .accordion-section.active .accordion-title {
+    color: var(--accent);
+  }
+
+  /* Summary shown on collapsed sections */
+  .accordion-summary {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-top: 0.125rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .accordion-section.active .accordion-summary {
+    display: none;
+  }
+
+  .accordion-badge {
+    background: var(--progress-muted);
+    color: var(--text-muted);
+    font-size: 0.625rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 99px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .accordion-chevron {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    transition: transform 0.25s;
+  }
+
+  .accordion-section.active .accordion-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  /* ===== Accordion body (panel content) ===== */
+
+  .accordion-body {
+    display: none;
+    background: var(--bg-surface);
+    padding: 1.25rem 1rem;
+  }
+
+  .accordion-section.active .accordion-body {
+    display: block;
+  }
+
+  /* ===== Content within accordion body ===== */
+
+  .workspace-desc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: transparent;
+    border: 1px dashed var(--border-accent);
+    color: var(--accent);
+    padding: 0.5rem 0.875rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+    margin-bottom: 0.75rem;
+  }
+
+  .add-btn:hover {
+    background: var(--accent-glow);
+  }
+
+  /* Item grid — single column on narrow, 2-col if space allows */
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .item-card {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .item-card:hover {
+    border-color: var(--border-accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .item-card .item-name {
+    font-weight: 500;
+    font-size: 0.9375rem;
+    margin-bottom: 0.1875rem;
+  }
+
+  .item-card .item-meta {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .item-card .item-actions {
+    display: flex;
+    gap: 0.375rem;
+    flex-shrink: 0;
+  }
+
+  .item-card .item-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .item-card .item-actions button:hover {
+    color: var(--accent);
+  }
+
+  /* Inline form */
+  .inline-form {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-accent);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: none;
+  }
+
+  .inline-form.open {
+    display: block;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Stack form rows on very narrow screens */
+  @media (max-width: 400px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.375rem;
+  }
+
+  .inline-form input,
+  .inline-form select,
+  .inline-form textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+  }
+
+  .inline-form input:focus,
+  .inline-form select:focus,
+  .inline-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .inline-form textarea {
+    resize: vertical;
+    min-height: 3.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #00c8dd, var(--accent));
+    color: var(--bg-primary);
+    border: none;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-elevated);
+  }
+
+  /* Next step prompt */
+  .next-step-card {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-accent);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .next-step-card:hover {
+    box-shadow: 0 2px 12px rgba(0, 229, 255, 0.1);
+  }
+
+  .next-step-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .next-step-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .next-step-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .next-step-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .next-step-btn:hover {
+    background: var(--accent);
+    color: var(--bg-primary);
+  }
+
+  /* Empty state within a section */
+  .empty-section {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 0.5rem;
+  }
+
+  .empty-section p {
+    font-size: 0.8125rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">Mockup 4 — Narrow / Compact Accordion Layout (breakpoint &lt; 768px)</div>
+<div class="mockup-note">
+  Replaces sidebar + workspace on narrow viewports. One section open at a time.
+  Progress dots on each header. Click any header to switch.
+</div>
+
+<!-- Header -->
+<div class="header">
+  <h1>app builder</h1>
+  <div class="header-actions">Sign in</div>
+</div>
+
+<!-- Accordion -->
+<div class="accordion">
+
+  <!-- ===== Requirements (active, has items) ===== -->
+  <div class="accordion-section active has-items" data-section="requirements">
+    <div class="accordion-header" onclick="activate('requirements')">
+      <div class="accordion-dot"></div>
+      <div class="accordion-header-content">
+        <div class="accordion-title">Requirements</div>
+        <div class="accordion-summary">View posts &middot; Create post &middot; Feed → Detail</div>
+      </div>
+      <span class="accordion-badge">3</span>
+      <span class="accordion-chevron">&#9662;</span>
+    </div>
+    <div class="accordion-body">
+      <p class="workspace-desc">Define what your app needs to do. Think about what users
+      need to know, what data they interact with, and how they navigate between views.</p>
+
+      <button class="add-btn" onclick="toggleForm('requirements')">+ Add Requirement</button>
+
+      <div id="form-requirements" class="inline-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select>
+              <option>Information</option>
+              <option selected>Data Interaction</option>
+              <option>Navigation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Related View</label>
+            <select disabled>
+              <option>— none —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Verb</label>
+            <input placeholder="search, list, create, update, etc.">
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input placeholder="a list of books, an appointment">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary">Add Requirement</button>
+          <button class="btn-ghost" onclick="toggleForm('requirements')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="item-grid">
+        <div class="item-card">
+          <div>
+            <div class="item-name">I need to view list of posts</div>
+            <div class="item-meta">Data Interaction</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit requirement" title="Edit">&#9998;</button>
+            <button aria-label="Delete requirement" title="Delete">&#10005;</button>
+          </div>
+        </div>
+        <div class="item-card">
+          <div>
+            <div class="item-name">I need to create a new post</div>
+            <div class="item-meta">Data Interaction</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit requirement" title="Edit">&#9998;</button>
+            <button aria-label="Delete requirement" title="Delete">&#10005;</button>
+          </div>
+        </div>
+        <div class="item-card">
+          <div>
+            <div class="item-name">I need to go from Feed to Detail</div>
+            <div class="item-meta">Direct Link</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit requirement" title="Edit">&#9998;</button>
+            <button aria-label="Delete requirement" title="Delete">&#10005;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="next-step-card" onclick="activate('data')">
+        <div>
+          <div class="next-step-label">Next step</div>
+          <div class="next-step-title">Define Data</div>
+          <div class="next-step-desc">Create the record types and fields your app will use.</div>
+        </div>
+        <button class="next-step-btn">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Data (collapsed, has items) ===== -->
+  <div class="accordion-section has-items" data-section="data">
+    <div class="accordion-header" onclick="activate('data')">
+      <div class="accordion-dot"></div>
+      <div class="accordion-header-content">
+        <div class="accordion-title">Data</div>
+        <div class="accordion-summary">Post (3 fields) &middot; Like (2 fields)</div>
+      </div>
+      <span class="accordion-badge">2</span>
+      <span class="accordion-chevron">&#9662;</span>
+    </div>
+    <div class="accordion-body">
+      <p class="workspace-desc">Define the data types your app will work with.
+      Each record type describes a kind of object users can create or read.</p>
+
+      <button class="add-btn">+ Add Record Type</button>
+
+      <div class="item-grid">
+        <div class="item-card">
+          <div>
+            <div class="item-name">Post</div>
+            <div class="item-meta">3 fields &middot; app.bsky.feed.post</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit" title="Edit">&#9998;</button>
+            <button aria-label="Delete" title="Delete">&#10005;</button>
+          </div>
+        </div>
+        <div class="item-card">
+          <div>
+            <div class="item-name">Like</div>
+            <div class="item-meta">2 fields &middot; app.bsky.feed.like</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit" title="Edit">&#9998;</button>
+            <button aria-label="Delete" title="Delete">&#10005;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="next-step-card" onclick="activate('components')">
+        <div>
+          <div class="next-step-label">Next step</div>
+          <div class="next-step-title">Define Components</div>
+          <div class="next-step-desc">Create reusable UI building blocks for your views.</div>
+        </div>
+        <button class="next-step-btn">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Components (collapsed, has items) ===== -->
+  <div class="accordion-section has-items" data-section="components">
+    <div class="accordion-header" onclick="activate('components')">
+      <div class="accordion-dot"></div>
+      <div class="accordion-header-content">
+        <div class="accordion-title">Components</div>
+        <div class="accordion-summary">PostCard</div>
+      </div>
+      <span class="accordion-badge">1</span>
+      <span class="accordion-chevron">&#9662;</span>
+    </div>
+    <div class="accordion-body">
+      <p class="workspace-desc">Components are reusable UI building blocks — cards, lists, forms.
+      They connect to your data types and get assembled into views.</p>
+
+      <button class="add-btn">+ Add Component</button>
+
+      <div class="item-grid">
+        <div class="item-card">
+          <div>
+            <div class="item-name">PostCard</div>
+            <div class="item-meta">Displays a Post record</div>
+          </div>
+          <div class="item-actions">
+            <button aria-label="Edit" title="Edit">&#9998;</button>
+            <button aria-label="Delete" title="Delete">&#10005;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="next-step-card" onclick="activate('views')">
+        <div>
+          <div class="next-step-label">Next step</div>
+          <div class="next-step-title">Define Views</div>
+          <div class="next-step-desc">Assemble components into pages and define navigation.</div>
+        </div>
+        <button class="next-step-btn">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Views (collapsed, empty) ===== -->
+  <div class="accordion-section" data-section="views">
+    <div class="accordion-header" onclick="activate('views')">
+      <div class="accordion-dot"></div>
+      <div class="accordion-header-content">
+        <div class="accordion-title">Views</div>
+        <div class="accordion-summary">None yet</div>
+      </div>
+      <span class="accordion-badge">0</span>
+      <span class="accordion-chevron">&#9662;</span>
+    </div>
+    <div class="accordion-body">
+      <div class="empty-section">
+        <p>Views are the pages of your app. Assemble components into layouts
+        and define navigation between views.</p>
+        <button class="add-btn">+ Add Your First View</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function activate(section) {
+    const sections = document.querySelectorAll('.accordion-section');
+    sections.forEach(s => {
+      if (s.dataset.section === section) {
+        s.classList.add('active');
+      } else {
+        s.classList.remove('active');
+        // Close any open forms in collapsed sections
+        const form = s.querySelector('.inline-form');
+        if (form) form.classList.remove('open');
+      }
+    });
+
+    // Smooth scroll to the activated section
+    const target = document.querySelector(`[data-section="${section}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function toggleForm(section) {
+    const form = document.getElementById(`form-${section}`);
+    if (form) {
+      form.classList.toggle('open');
+      if (form.classList.contains('open')) {
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+</script>
+
+</body>
+</html>

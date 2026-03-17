@@ -18,6 +18,7 @@ function rawHtmlReload(): Plugin {
       }
     },
     configureServer(server) {
+      if (process.env.VITEST) return;
       // Watch template directory for HTML changes
       const viewsDir = resolve(__dirname, 'src/app/views');
       watch(viewsDir, { recursive: true }, (_event, filename) => {

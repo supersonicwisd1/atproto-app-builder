@@ -110,13 +110,13 @@ See `landing-page-header-redesign.md`. Must be completed before starting this mi
 
 See `requirements-panel.md` for full behavioral spec, including empty-state intro content.
 
-- [ ] Verify Step 1 files are already deleted (handled by `landing-page-header-redesign.md`)
-- [ ] Design and implement the Requirements panel (this is new — requirements are a new concept not in the old wizard)
-- [ ] Implement empty state with intro content from the deleted Step 1 (what a decentralized app is, example app ideas)
-- [ ] Determine how requirements map to the existing state model (may need to extend `WizardState`)
-- [ ] Implement the 3 requirement types: Information, Data Interactions, Navigation
-- [ ] Add tests for RequirementsPanel
-- [ ] Verify: can add/edit/delete requirements
+- [x] Verify Step 1 files are already deleted (handled by `landing-page-header-redesign.md`)
+- [x] Design and implement the Requirements panel (this is new — requirements are a new concept not in the old wizard)
+- [x] Implement empty state with intro content from the deleted Step 1 (what a decentralized app is, example app ideas)
+- [x] Determine how requirements map to the existing state model (may need to extend `WizardState`)
+- [x] Implement the 3 requirement types: Information, Data Interactions, Navigation
+- [x] Add tests for RequirementsPanel
+- [x] Verify: can add/edit/delete requirements
 
 ### Phase 4: Components Panel (new functionality)
 

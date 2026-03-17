@@ -53,6 +53,38 @@ export interface AppConfig {
 
 export type SectionName = 'requirements' | 'data' | 'components' | 'views';
 
+export type RequirementType = 'know' | 'do' | 'navigate';
+
+export type NavType = 'direct' | 'menu' | 'forward-back';
+
+export type NavControlType = 'arrows' | 'buttons';
+
+export interface Requirement {
+  id: string;
+  type: RequirementType;
+  // 'know' type
+  text?: string;
+  content?: string;
+  // 'do' type
+  verb?: string;
+  data?: string;
+  // 'navigate' type
+  navType?: NavType;
+  // navigate — direct link
+  fromView?: string;
+  toView?: string;
+  // navigate — menu
+  menuItems?: string[];
+  menuVisibleOn?: string[];
+  // navigate — forward/back
+  pageOrder?: string[];
+  navControlType?: NavControlType;
+  buttonForwardText?: string;
+  buttonBackText?: string;
+  // shared (know/do only)
+  relatedView?: string;
+}
+
 export interface WizardState {
   version: string;
   lastSaved: string;
@@ -64,6 +96,7 @@ export interface WizardState {
   queryMethods: QueryMethod[];
   procedureMethods: ProcedureMethod[];
   appConfig: AppConfig;
+  requirements: Requirement[];
 }
 
 export interface LoadedState {
