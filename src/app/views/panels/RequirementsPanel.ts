@@ -18,7 +18,11 @@
 import { getWizardState, saveWizardState } from '../../state/WizardState';
 import { generateId } from '../../../utils/id';
 import { updateAccordionSummaries } from '../WorkspaceLayout';
-import type { Requirement, RequirementType, NavType } from '../../../types/wizard';
+import type {
+  Requirement,
+  RequirementType,
+  NavType,
+} from '../../../types/wizard';
 
 const MAX_REQUIREMENTS = 100;
 
@@ -113,7 +117,10 @@ function getTypeLabel(req: Requirement): string {
 
 // ── Inline form rendering ─────────────────────────────────────────────
 
-function renderInlineForm(type: RequirementType, existing?: Requirement): string {
+function renderInlineForm(
+  type: RequirementType,
+  existing?: Requirement,
+): string {
   const saveLabel = existing ? 'Save' : 'Add Requirement';
   const knowSelected = type === 'know' ? ' selected' : '';
   const doSelected = type === 'do' ? ' selected' : '';
@@ -145,7 +152,10 @@ function renderInlineForm(type: RequirementType, existing?: Requirement): string
   `;
 }
 
-function renderHeaderRight(type: RequirementType, existing?: Requirement): string {
+function renderHeaderRight(
+  type: RequirementType,
+  existing?: Requirement,
+): string {
   if (type === 'navigate') {
     return renderNavTypeDropdown(existing);
   }
@@ -164,7 +174,10 @@ function renderNavTypeDropdown(existing?: Requirement): string {
     (r) => r.type === 'navigate' && r.navType === 'menu' && r.id !== editingId,
   );
   const hasForwardBack = requirements.some(
-    (r) => r.type === 'navigate' && r.navType === 'forward-back' && r.id !== editingId,
+    (r) =>
+      r.type === 'navigate' &&
+      r.navType === 'forward-back' &&
+      r.id !== editingId,
   );
 
   const navType = existing?.navType ?? 'direct';
@@ -181,7 +194,10 @@ function renderNavTypeDropdown(existing?: Requirement): string {
 
 // ── Type-specific fields ──────────────────────────────────────────────
 
-function renderTypeFields(type: RequirementType, existing?: Requirement): string {
+function renderTypeFields(
+  type: RequirementType,
+  existing?: Requirement,
+): string {
   if (type === 'know') {
     const val = existing?.text ?? '';
     const content = existing?.content ?? '';
@@ -201,6 +217,7 @@ function renderTypeFields(type: RequirementType, existing?: Requirement): string
     const verb = existing?.verb ?? '';
     const data = existing?.data ?? '';
     return `
+      <div class="form-hint">As a user of the app, I need to&hellip;</div>
       <div class="form-row">
         <div class="form-group">
           <label>Verb</label>
@@ -219,7 +236,10 @@ function renderTypeFields(type: RequirementType, existing?: Requirement): string
   return renderNavSubtypeFields(navType, existing);
 }
 
-function renderNavSubtypeFields(navType: NavType, existing?: Requirement): string {
+function renderNavSubtypeFields(
+  navType: NavType,
+  existing?: Requirement,
+): string {
   if (navType === 'direct') {
     return `
       <div class="form-row">
@@ -289,7 +309,7 @@ function renderNavSubtypeFields(navType: NavType, existing?: Requirement): strin
 export function getDisplayText(req: Requirement): string {
   switch (req.type) {
     case 'know':
-      return `I need to know ${req.text ?? ''}`;
+      return `${req.text ?? ''}`;
     case 'do':
       return `I need to ${req.verb ?? ''} ${req.data ?? ''}`;
     case 'navigate':
@@ -334,7 +354,11 @@ function escapeHtml(str: string): string {
 }
 
 function escapeAttr(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // ── Event wiring ───────────────────────────────────────────────────────
@@ -376,7 +400,9 @@ function wireNextStepButton(): void {
   const nextStep = document.getElementById('req-next-step');
   if (nextStep) {
     nextStep.addEventListener('click', () => {
-      const dataHeader = document.querySelector('.sidebar-header[data-target="data"]') as HTMLElement | null;
+      const dataHeader = document.querySelector(
+        '.sidebar-header[data-target="data"]',
+      ) as HTMLElement | null;
       if (dataHeader) dataHeader.click();
     });
   }
@@ -409,7 +435,9 @@ function showForm(type?: RequirementType, existing?: Requirement): void {
 }
 
 function wireTypeDropdown(existing?: Requirement): void {
-  const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement | null;
+  const typeSelect = document.getElementById(
+    'req-type-select',
+  ) as HTMLSelectElement | null;
   if (!typeSelect) return;
 
   typeSelect.addEventListener('change', () => {
@@ -444,7 +472,9 @@ function wireTypeDropdown(existing?: Requirement): void {
 }
 
 function wireNavTypeDropdown(existing?: Requirement): void {
-  const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement | null;
+  const navTypeSelect = document.getElementById(
+    'req-nav-type-select',
+  ) as HTMLSelectElement | null;
   if (!navTypeSelect) return;
 
   navTypeSelect.addEventListener('change', () => {
@@ -490,13 +520,19 @@ function startEdit(id: string): void {
 
 function wireFormValidation(type: RequirementType): void {
   if (type === 'know') {
-    const textarea = document.getElementById('req-know-text') as HTMLTextAreaElement | null;
+    const textarea = document.getElementById(
+      'req-know-text',
+    ) as HTMLTextAreaElement | null;
     if (textarea) {
       textarea.addEventListener('input', () => validateForm(type));
     }
   } else if (type === 'do') {
-    const verb = document.getElementById('req-do-verb') as HTMLInputElement | null;
-    const data = document.getElementById('req-do-data') as HTMLInputElement | null;
+    const verb = document.getElementById(
+      'req-do-verb',
+    ) as HTMLInputElement | null;
+    const data = document.getElementById(
+      'req-do-data',
+    ) as HTMLInputElement | null;
     if (verb) verb.addEventListener('input', () => validateForm(type));
     if (data) data.addEventListener('input', () => validateForm(type));
   }
@@ -504,17 +540,27 @@ function wireFormValidation(type: RequirementType): void {
 }
 
 function validateForm(type: RequirementType): void {
-  const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement | null;
+  const saveBtn = document.querySelector(
+    '.req-save-btn',
+  ) as HTMLButtonElement | null;
   if (!saveBtn) return;
 
   let valid = false;
   if (type === 'know') {
-    const textarea = document.getElementById('req-know-text') as HTMLTextAreaElement | null;
+    const textarea = document.getElementById(
+      'req-know-text',
+    ) as HTMLTextAreaElement | null;
     valid = (textarea?.value.trim().length ?? 0) > 0;
   } else if (type === 'do') {
-    const verb = document.getElementById('req-do-verb') as HTMLInputElement | null;
-    const data = document.getElementById('req-do-data') as HTMLInputElement | null;
-    valid = (verb?.value.trim().length ?? 0) > 0 && (data?.value.trim().length ?? 0) > 0;
+    const verb = document.getElementById(
+      'req-do-verb',
+    ) as HTMLInputElement | null;
+    const data = document.getElementById(
+      'req-do-data',
+    ) as HTMLInputElement | null;
+    valid =
+      (verb?.value.trim().length ?? 0) > 0 &&
+      (data?.value.trim().length ?? 0) > 0;
   }
   // navigate: valid stays false until views exist
 
@@ -524,7 +570,9 @@ function validateForm(type: RequirementType): void {
 // ── State mutations ────────────────────────────────────────────────────
 
 function saveRequirement(): void {
-  const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement | null;
+  const typeSelect = document.getElementById(
+    'req-type-select',
+  ) as HTMLSelectElement | null;
   if (!typeSelect) return;
   const type = typeSelect.value as RequirementType;
 
@@ -549,7 +597,9 @@ function saveRequirement(): void {
 
 function deleteRequirement(id: string): void {
   const wizardState = getWizardState();
-  wizardState.requirements = wizardState.requirements.filter((r) => r.id !== id);
+  wizardState.requirements = wizardState.requirements.filter(
+    (r) => r.id !== id,
+  );
   saveWizardState(wizardState);
   rerenderPanel();
 }
@@ -559,12 +609,18 @@ function buildRequirementFromForm(type: RequirementType): Requirement | null {
 
   if (type === 'know') {
     // Read relatedView (only for know/do)
-    const relatedViewEl = document.getElementById('req-related-view') as HTMLSelectElement | null;
+    const relatedViewEl = document.getElementById(
+      'req-related-view',
+    ) as HTMLSelectElement | null;
     const relatedView = relatedViewEl?.value ?? '';
     if (relatedView) base.relatedView = relatedView;
 
-    const textarea = document.getElementById('req-know-text') as HTMLTextAreaElement | null;
-    const contentEl = document.getElementById('req-know-content') as HTMLTextAreaElement | null;
+    const textarea = document.getElementById(
+      'req-know-text',
+    ) as HTMLTextAreaElement | null;
+    const contentEl = document.getElementById(
+      'req-know-content',
+    ) as HTMLTextAreaElement | null;
     const text = textarea?.value.trim() ?? '';
     const content = contentEl?.value.trim() ?? '';
     if (!text) return null;
@@ -572,12 +628,18 @@ function buildRequirementFromForm(type: RequirementType): Requirement | null {
     if (content) base.content = content;
   } else if (type === 'do') {
     // Read relatedView (only for know/do)
-    const relatedViewEl = document.getElementById('req-related-view') as HTMLSelectElement | null;
+    const relatedViewEl = document.getElementById(
+      'req-related-view',
+    ) as HTMLSelectElement | null;
     const relatedView = relatedViewEl?.value ?? '';
     if (relatedView) base.relatedView = relatedView;
 
-    const verbEl = document.getElementById('req-do-verb') as HTMLInputElement | null;
-    const dataEl = document.getElementById('req-do-data') as HTMLInputElement | null;
+    const verbEl = document.getElementById(
+      'req-do-verb',
+    ) as HTMLInputElement | null;
+    const dataEl = document.getElementById(
+      'req-do-data',
+    ) as HTMLInputElement | null;
     const verb = verbEl?.value.trim() ?? '';
     const data = dataEl?.value.trim() ?? '';
     if (!verb || !data) return null;
@@ -585,7 +647,9 @@ function buildRequirementFromForm(type: RequirementType): Requirement | null {
     base.data = data;
   } else {
     // navigate — read navType, currently can't save (all sub-forms disabled)
-    const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement | null;
+    const navTypeSelect = document.getElementById(
+      'req-nav-type-select',
+    ) as HTMLSelectElement | null;
     base.navType = (navTypeSelect?.value as NavType) ?? 'direct';
     return null;
   }
@@ -597,8 +661,9 @@ function buildRequirementFromForm(type: RequirementType): Requirement | null {
 
 function rerenderPanel(): void {
   // Re-render into whichever container is visible (avoid duplicate IDs)
-  const narrow = typeof window.matchMedia === 'function'
-    && window.matchMedia('(max-width: 767px)').matches;
+  const narrow =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 767px)').matches;
 
   if (narrow) {
     const accBody = document.querySelector(
@@ -617,7 +682,9 @@ function rerenderPanel(): void {
 
 export function updateSidebar(): void {
   const { requirements } = getWizardState();
-  const section = document.querySelector('.sidebar-section[data-section="requirements"]');
+  const section = document.querySelector(
+    '.sidebar-section[data-section="requirements"]',
+  );
   if (!section) return;
 
   // Update badge
@@ -639,7 +706,10 @@ export function updateSidebar(): void {
     itemsContainer.innerHTML = '<div class="sidebar-item-empty">None yet</div>';
   } else {
     itemsContainer.innerHTML = requirements
-      .map((r) => `<div class="sidebar-item">${escapeHtml(getSidebarText(r))}</div>`)
+      .map(
+        (r) =>
+          `<div class="sidebar-item">${escapeHtml(getSidebarText(r))}</div>`,
+      )
       .join('');
   }
 }
