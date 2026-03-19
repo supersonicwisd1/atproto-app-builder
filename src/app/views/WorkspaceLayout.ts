@@ -20,7 +20,7 @@ import {
   updateSidebar as updateRequirementsSidebar,
   updateDataSidebar,
 } from './panels/RequirementsPanel';
-import { renderDataPanel } from './panels/DataPanel';
+import { renderDataPanel, wireDataPanel } from './panels/DataPanel';
 import { renderComponentsPanel } from './panels/ComponentsPanel';
 import { renderViewsPanel } from './panels/ViewsPanel';
 
@@ -149,6 +149,8 @@ export function switchSection(section: SectionName): void {
   if (section === 'requirements') {
     wireRequirementsPanel();
     updateRequirementsSidebar();
+  } else if (section === 'data') {
+    wireDataPanel();
   }
 
   // Always keep data sidebar in sync (RecordTypes may be seeded from requirements)

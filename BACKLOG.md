@@ -11,7 +11,7 @@ Pick one item from "Up Next" before starting a coding session.
 
 - [x] Phase 0: Preparation — delete orphans, add sidebar HTML/CSS
 - [x] Phase 1: Scaffold sidebar + workspace layout
-- [ ] Phase 2: Data Panel (migrate from deprecated steps)
+- [x] Phase 2: Data Panel (read-only cards) — see `.specs/done/data-panel-cards.md`
 - [x] Phase 3: Requirements Panel + delete Step 1 — see `.specs/active/requirements-panel.md`
 - [ ] Phase 4: Components Panel
 - [ ] Phase 5: Views Panel
