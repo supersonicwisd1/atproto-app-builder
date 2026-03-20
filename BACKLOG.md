@@ -24,6 +24,11 @@ Pick one item from "Up Next" before starting a coding session.
 
 <!-- Prioritized list — work top to bottom -->
 
+### Data Type Specs (sequential — identity first, then fields)
+
+- [x] Data type identity — lexicon config & discovery — see `.specs/active/data-type-identity.md`
+- [ ] Data type fields — see `.specs/active/data-type-fields.md`
+
 ### Independent (no blockers)
 
 - [ ] Clean up unused assets (fonts, SVG filters) — see `.specs/active/cleanup-unused-assets.md`

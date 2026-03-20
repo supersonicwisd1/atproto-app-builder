@@ -57,6 +57,13 @@ export default defineConfig({
   server: {
     port: 8080,
     host: '0.0.0.0',
+    proxy: {
+      '/lexicon-garden': {
+        target: 'https://lexicon.garden',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/lexicon-garden/, ''),
+      },
+    },
   },
   build: {
     outDir: 'dist',

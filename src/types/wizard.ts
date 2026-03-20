@@ -13,12 +13,29 @@ export interface Field {
   required: boolean;
 }
 
+export type NamespaceOption = 'thelexfiles' | 'thelexfiles-temp' | 'byo-domain';
+
 export interface RecordType {
   id: string;
-  name: string;           // lexicon-compatible identifier; empty string until user sets it (future)
+  name: string;           // lexicon name segment (lowerCamelCase)
   displayName: string;    // human-readable label, seeded from requirement's data type selection
   description: string;
   fields: Field[];
+
+  // Lexicon source
+  source: 'new' | 'adopted';          // default 'new'
+
+  // For adopted lexicons
+  adoptedNsid?: string;               // full NSID of adopted schema
+  adoptedSchema?: import('./generation').LexiconSchema; // full schema JSON for reference
+
+  // For new lexicons — namespace
+  namespaceOption?: NamespaceOption;
+  lexUsername?: string;                // theLexFiles.com username
+  customDomain?: string;              // BYO domain
+
+  // Record key type
+  recordKeyType?: 'tid' | 'any';      // default 'tid'
 }
 
 export interface QueryMethod {
@@ -43,6 +60,10 @@ export interface AppInfo {
   domain: string;
   description: string;
   authorName: string;
+
+  // Cached namespace defaults
+  lexUsername?: string;                // last-used theLexFiles.com username
+  lastNamespaceOption?: NamespaceOption;
 }
 
 export interface AppConfig {

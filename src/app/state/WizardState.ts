@@ -52,11 +52,17 @@ export function setWizardState(state: WizardState): void {
   if (!state.requirements) {
     state.requirements = [];
   }
-  // Migrate: ensure recordTypes have displayName for old saved states
+  // Migrate: ensure recordTypes have displayName and identity fields for old saved states
   if (state.recordTypes) {
     for (const rt of state.recordTypes) {
       if (!rt.displayName) {
         rt.displayName = rt.name || '';
+      }
+      if (!rt.source) {
+        rt.source = 'new';
+      }
+      if (!rt.recordKeyType) {
+        rt.recordKeyType = 'tid';
       }
     }
   }

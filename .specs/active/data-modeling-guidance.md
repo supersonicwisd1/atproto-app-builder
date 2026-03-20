@@ -137,6 +137,68 @@ A lightweight modal or expandable section accessible from the Data panel:
   - Placement TBD: could be in the Data panel tips, a help section, or the requirements empty state.
 - [ ] A decision-aid reference is accessible from the Data panel
   - When the user wants help deciding, they can access a checklist (via a help link, expandable section, or similar) that walks through the entity-vs-field signals.
+- [ ] Adopt-vs-create guidance is shown when users choose a lexicon source
+  - When the user opens the source selection in the data type detail view, guidance helps them decide whether to adopt an existing lexicon or create a new one.
+  - The guidance emphasizes the interoperability implications of adopting ("your data appears in other apps").
+- [ ] Namespace guidance is shown when users select a namespace option
+  - When the user views the namespace options in the create-new form, each option has a clear description of what it means and who it's for.
+  - The experimental (.temp.) option explains what "experimental" means in practical terms.
+- [ ] Schema stability warning is shown for stable lexicons
+  - When the user selects the stable (non-.temp.) theLexFiles.com option, a note explains that stable lexicons are effectively immutable once published and adopted.
+  - The warning suggests starting with experimental if the user is unsure.
+
+### Point 6: Adopt vs. Create — when to use an existing lexicon
+**Where:** The Data panel detail view, visible when the user first opens the source selection (adopt existing vs create new) in `data-type-identity.md`.
+**Purpose:** Help users understand when they should adopt an existing lexicon vs creating a new one, and what the tradeoffs are.
+**Content (draft):**
+
+> **Should you use an existing lexicon or create your own?**
+>
+> **Use an existing lexicon when:**
+> - You want your app's data to work with other apps (e.g., posts that show up on Bluesky)
+> - Someone has already defined a schema that fits your data perfectly
+> - You're building on top of an established ecosystem
+>
+> **Create your own when:**
+> - Your data is unique to your app
+> - Existing lexicons don't match your needs
+> - You want full control over the schema
+>
+> **Important:** Adopting a lexicon means your app creates real data that other apps can see. If users don't expect their data to appear elsewhere, create your own lexicon instead.
+
+### Point 7: Namespace guidance — choosing where your lexicon lives
+**Where:** The namespace selection area within the create-new path of the Data panel detail view.
+**Purpose:** Help users choose the right namespace option without requiring them to understand DNS or NSID internals.
+**Content (draft):**
+
+> **Where should your lexicon live?**
+>
+> **theLexFiles.com (recommended):** We host your lexicon for you. It gets a permanent address on the AT Protocol network. Other apps can discover and build against it. Choose this unless you have a reason not to.
+>
+> **theLexFiles.com — experimental:** Same hosting, but your lexicon's address includes ".temp." to signal it's not stable yet. This is a good choice when you're:
+> - Prototyping and expect the schema to change
+> - Not ready for other apps to depend on your data format
+> - Testing ideas before committing to a final design
+>
+> You can publish a stable (non-.temp.) version later when you're ready.
+>
+> **My own domain:** You host the lexicon yourself using a domain you control. This gives you full ownership but requires you to manage DNS records and publishing. Only choose this if you're already familiar with AT Protocol infrastructure.
+
+### Point 8: Schema stability — understanding immutability
+**Where:** Shown as a note when the user selects the stable (non-.temp.) theLexFiles.com option, and/or as a confirmation before publishing (in the future Generate Flow spec).
+**Purpose:** Make sure users understand the commitment they're making with a stable lexicon.
+**Content (draft):**
+
+> **Stable lexicons are permanent**
+>
+> Once you publish a stable lexicon and other apps start using it, the schema is effectively frozen:
+> - You **can** add new optional fields later
+> - You **cannot** remove fields, change field types, or rename fields
+> - You **cannot** make optional fields required (or vice versa)
+>
+> If you need to make breaking changes, the convention is to create a new version (e.g., `groceryItemV2`).
+>
+> **Not sure yet?** Start with the experimental (.temp.) option. You can always publish a stable version later.
 
 ## Scope
 **In scope:**
@@ -144,6 +206,9 @@ A lightweight modal or expandable section accessible from the Data panel:
 - Contextual tip in the Data panel (static or lightly heuristic-based)
 - Decision-aid checklist content and placement
 - Dismissal persistence for tips (localStorage flag)
+- Adopt vs. create guidance in the detail view source selection
+- Namespace guidance in the create-new namespace selection area
+- Schema stability / immutability warning for stable lexicons
 
 **Out of scope:**
 - AI-powered schema suggestion or automatic entity detection
@@ -170,8 +235,8 @@ A lightweight modal or expandable section accessible from the Data panel:
 
 ## Files Likely Affected
 - `src/app/views/panels/RequirementsPanel.ts` — Updated hint text for data type combobox
-- `src/app/views/panels/DataPanel.ts` — Contextual tip rendering and dismissal logic
-- `styles/workspace/data-panel.css` — Tip styling (if not covered by existing classes)
+- `src/app/views/panels/DataPanel.ts` — Contextual tip rendering, dismissal logic, adopt-vs-create guidance, namespace guidance, stability warning (integrated into the detail view from `data-type-identity.md`)
+- `styles.css` — Tip styling, guidance note styling (if not covered by existing classes)
 
 ## How to Verify
 1. Open the "do" requirement form — confirm the data type hint includes type-vs-instance guidance

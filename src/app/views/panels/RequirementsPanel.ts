@@ -809,6 +809,7 @@ function resolveOrCreateDataType(
     displayName: displayName.trim(),
     description: '',
     fields: [],
+    source: 'new',
   };
   wizardState.recordTypes.push(newType);
   return newType.id;

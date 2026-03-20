@@ -4,6 +4,8 @@ import {
   renderDataPanel,
   wireDataPanel,
   getCompletionStatus,
+  getStatusBadge,
+  _resetDetailState,
 } from '../../src/app/views/panels/DataPanel';
 import {
   getWizardState,
@@ -21,6 +23,7 @@ function makeRecordType(overrides: Partial<RecordType> = {}): RecordType {
     displayName: 'test type',
     description: '',
     fields: [],
+    source: 'new',
     ...overrides,
   };
 }
@@ -67,11 +70,45 @@ describe('getCompletionStatus', () => {
   });
 });
 
+// ── Status badge ──────────────────────────────────────────────────────
+
+describe('getStatusBadge', () => {
+  it('returns Draft for a new record with no name', () => {
+    const rt = makeRecordType({ name: '', source: 'new' });
+    expect(getStatusBadge(rt)).toEqual({ label: 'Draft', class: 'draft' });
+  });
+
+  it('returns Ready for a new record with name and namespace', () => {
+    const rt = makeRecordType({
+      name: 'groceryItem',
+      source: 'new',
+      namespaceOption: 'thelexfiles',
+      lexUsername: 'alice',
+    });
+    expect(getStatusBadge(rt)).toEqual({ label: 'Ready', class: 'ready' });
+  });
+
+  it('returns Adopted for an adopted record', () => {
+    const rt = makeRecordType({
+      name: 'post',
+      source: 'adopted',
+      adoptedNsid: 'app.bsky.feed.post',
+    });
+    expect(getStatusBadge(rt)).toEqual({ label: 'Adopted', class: 'adopted' });
+  });
+
+  it('returns Draft when name set but no namespace option', () => {
+    const rt = makeRecordType({ name: 'groceryItem', source: 'new' });
+    expect(getStatusBadge(rt)).toEqual({ label: 'Draft', class: 'draft' });
+  });
+});
+
 // ── Rendering ──────────────────────────────────────────────────────────
 
 describe('renderDataPanel', () => {
   beforeEach(() => {
     setWizardState(initializeWizardState());
+    _resetDetailState();
   });
 
   it('renders empty state when no record types exist', () => {
@@ -96,7 +133,6 @@ describe('renderDataPanel', () => {
     expect(html).toContain('data-list');
     expect(html).toContain('book');
     expect(html).toContain('grocery item');
-    expect(html).toContain('Lexicon record type');
   });
 
   it('renders cards with data-record-id attributes', () => {
@@ -115,13 +151,14 @@ describe('renderDataPanel', () => {
     expect(html).toContain('Name and fields needed');
   });
 
-  it('cards have no action buttons', () => {
+  it('renders status badges on cards', () => {
     const state = getWizardState();
-    state.recordTypes = [makeRecordType({ displayName: 'book' })];
+    state.recordTypes = [
+      makeRecordType({ displayName: 'book', name: '', source: 'new' }),
+    ];
     const html = renderDataPanel();
-    expect(html).not.toContain('item-actions');
-    expect(html).not.toContain('edit');
-    expect(html).not.toContain('delete');
+    expect(html).toContain('status-badge--draft');
+    expect(html).toContain('Draft');
   });
 
   it('renders cards in creation order', () => {
@@ -148,6 +185,13 @@ describe('renderDataPanel', () => {
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
   });
+
+  it('renders clickable card class', () => {
+    const state = getWizardState();
+    state.recordTypes = [makeRecordType({ id: 'rt-1' })];
+    const html = renderDataPanel();
+    expect(html).toContain('item-card--clickable');
+  });
 });
 
 // ── DOM interaction ────────────────────────────────────────────────────
@@ -155,6 +199,7 @@ describe('renderDataPanel', () => {
 describe('wireDataPanel (DOM)', () => {
   beforeEach(() => {
     setWizardState(initializeWizardState());
+    _resetDetailState();
   });
 
   function mountEmptyPanel(): void {
@@ -217,5 +262,213 @@ describe('wireDataPanel (DOM)', () => {
 
     expect(document.querySelector('.empty-workspace')).toBeNull();
     expect(document.querySelectorAll('.item-card')).toHaveLength(1);
+  });
+
+  it('clicking a card opens the detail view', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // After click, the panel should re-render with detail view
+    expect(document.querySelector('.data-detail')).not.toBeNull();
+    expect(document.querySelector('.data-detail-title')!.textContent).toBe('book');
+    expect(document.getElementById('dt-back-link')).not.toBeNull();
+  });
+
+  it('detail view shows status badge', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    expect(document.querySelector('.status-badge--draft')).not.toBeNull();
+  });
+
+  it('detail view auto-suggests record name from displayName', () => {
+    const state = getWizardState();
+    state.recordTypes = [
+      makeRecordType({ id: 'rt-1', displayName: 'grocery item' }),
+    ];
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderDataPanel()}</div>
+    `;
+    wireDataPanel();
+
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // Navigate through choice to create form
+    document.getElementById('dt-choice-create')!.click();
+
+    const nameInput = document.getElementById('dt-record-name') as HTMLInputElement;
+    expect(nameInput.value).toBe('groceryItem');
+  });
+
+  it('detail view shows NSID preview', () => {
+    const state = getWizardState();
+    state.recordTypes = [
+      makeRecordType({ id: 'rt-1', displayName: 'grocery item' }),
+    ];
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderDataPanel()}</div>
+    `;
+    wireDataPanel();
+
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // Navigate through choice to create form
+    document.getElementById('dt-choice-create')!.click();
+
+    const nsid = document.querySelector('.nsid-preview-value');
+    expect(nsid).not.toBeNull();
+    // Should contain groceryItem in the NSID
+    expect(nsid!.textContent).toContain('groceryItem');
+  });
+
+  it('detail view shows source choice for fresh drafts', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    expect(document.querySelector('.source-choice')).not.toBeNull();
+    expect(document.getElementById('dt-choice-create')).not.toBeNull();
+    expect(document.getElementById('dt-choice-browse')).not.toBeNull();
+    expect(document.getElementById('dt-create-form')).toBeNull();
+  });
+
+  it('clicking "Define new" shows create form', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    document.getElementById('dt-choice-create')!.click();
+
+    expect(document.getElementById('dt-create-form')).not.toBeNull();
+    expect(document.querySelector('.source-choice')).toBeNull();
+    expect(document.getElementById('dt-switch-to-browse')).not.toBeNull();
+  });
+
+  it('clicking "Use existing" shows browse UI', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    document.getElementById('dt-choice-browse')!.click();
+
+    expect(document.getElementById('dt-browse-ui')).not.toBeNull();
+    expect(document.querySelector('.source-choice')).toBeNull();
+    expect(document.getElementById('dt-back-to-create')).not.toBeNull();
+  });
+
+  it('clicking back from browse returns to source choice for fresh drafts', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // Go to browse via choice
+    document.getElementById('dt-choice-browse')!.click();
+    expect(document.getElementById('dt-browse-ui')).not.toBeNull();
+
+    // Back should return to choice (not create)
+    document.getElementById('dt-back-to-create')!.click();
+    expect(document.querySelector('.source-choice')).not.toBeNull();
+    expect(document.getElementById('dt-browse-ui')).toBeNull();
+  });
+
+  it('skips source choice for records with saved identity', () => {
+    const state = getWizardState();
+    state.recordTypes = [
+      makeRecordType({
+        id: 'rt-saved',
+        displayName: 'book',
+        name: 'book',
+        namespaceOption: 'thelexfiles',
+        lexUsername: 'alice',
+      }),
+    ];
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderDataPanel()}</div>
+    `;
+    wireDataPanel();
+
+    const card = document.querySelector('.item-card[data-record-id="rt-saved"]') as HTMLElement;
+    card.click();
+
+    // Should go straight to create form, not choice
+    expect(document.getElementById('dt-create-form')).not.toBeNull();
+    expect(document.querySelector('.source-choice')).toBeNull();
+  });
+
+  it('detail view shows three namespace radio options', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // Navigate through choice to create form
+    document.getElementById('dt-choice-create')!.click();
+
+    const radios = document.querySelectorAll('input[name="dt-namespace"]');
+    expect(radios).toHaveLength(3);
+  });
+
+  it('back link returns to card grid', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+    expect(document.querySelector('.data-detail')).not.toBeNull();
+
+    const backLink = document.getElementById('dt-back-link') as HTMLElement;
+    backLink.click();
+    expect(document.querySelector('.data-detail')).toBeNull();
+    expect(document.querySelector('.item-grid')).not.toBeNull();
+  });
+
+  it('namespace defaults to theLexFiles.com (recommended)', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    // Navigate through choice to create form
+    document.getElementById('dt-choice-create')!.click();
+
+    const checked = document.querySelector(
+      'input[name="dt-namespace"]:checked',
+    ) as HTMLInputElement;
+    expect(checked.value).toBe('thelexfiles');
+  });
+
+  it('detail view shows intro text in source choice', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    const intro = document.querySelector('.source-intro');
+    expect(intro).not.toBeNull();
+    expect(intro!.textContent).toContain('Each data type needs a definition');
+  });
+
+  it('detail view has Fields section heading', () => {
+    mountPanelWithCards();
+    const card = document.querySelector('.item-card[data-record-id="rt-1"]') as HTMLElement;
+    card.click();
+
+    const heading = document.querySelector('.detail-section-heading');
+    expect(heading).not.toBeNull();
+    expect(heading!.textContent).toBe('Fields');
+  });
+});
+
+// ── State migration ───────────────────────────────────────────────────
+
+describe('state migration', () => {
+  it('adds source and recordKeyType to old RecordTypes', () => {
+    const state = initializeWizardState();
+    state.recordTypes = [
+      { id: 'rt-1', name: '', displayName: 'book', description: '', fields: [] } as any,
+    ];
+    setWizardState(state);
+    const migrated = getWizardState();
+    expect(migrated.recordTypes[0].source).toBe('new');
+    expect(migrated.recordTypes[0].recordKeyType).toBe('tid');
   });
 });

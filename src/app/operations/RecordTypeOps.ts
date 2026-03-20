@@ -73,7 +73,8 @@ export function handleRecordFormSubmit(e: Event): void {
       name: name,
       displayName: name,
       description: description,
-      fields: []
+      fields: [],
+      source: 'new',
     });
   }
 
