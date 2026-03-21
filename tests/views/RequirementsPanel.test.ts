@@ -666,8 +666,9 @@ describe('data type combobox and seeding', () => {
 
     expect(document.getElementById('req-do-data-combobox')).not.toBeNull();
     expect(document.getElementById('req-do-data-dropdown')).not.toBeNull();
-    const hint = document.querySelector('#req-type-fields .form-hint:last-child');
-    expect(hint?.textContent).toContain('What kind of thing');
+    const hints = document.querySelectorAll('#req-type-fields .form-hint');
+    const hintTexts = Array.from(hints).map(h => h.textContent);
+    expect(hintTexts.some(t => t?.includes('What kind of thing'))).toBe(true);
   });
 
   it('dropdown does not appear when no record types exist', () => {

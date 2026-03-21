@@ -25,6 +25,7 @@ import type { LexiconSchema } from '../../../types/generation';
 
 let activeDetailRecordId: string | null = null;
 let detailMode: 'choice' | 'create' | 'browse' = 'choice';
+let guidanceChecklistOpen = false;
 
 // Form working state — preserved when switching between create-new and browse
 interface CreateNewFormState {
@@ -104,6 +105,7 @@ export { getCompletionStatus, getStatusBadge };
 export function resetDetailState(): void {
   activeDetailRecordId = null;
   detailMode = 'choice';
+  guidanceChecklistOpen = false;
   formState = null;
   savedFormSnapshot = null;
   searchQuery = '';
@@ -136,6 +138,28 @@ function renderCardGrid(recordTypes: RecordType[]): string {
       Click a card to define what information it stores.
     </p>
 
+    <details class="guidance-details">
+      <summary>Tips on defining Data</summary>
+      <div class="guidance-details-body">
+        <p><strong>Lists of things should be separate data types</strong></p>
+        <p>If one of your data types is a list of things that each have
+        their own details (like items in a grocery list, or tasks in a
+        project), those things should be their own data type. You can
+        connect them later.</p>
+
+        <p><strong>Name types as general concepts</strong></p>
+        <p>Use &ldquo;grocery item&rdquo; not &ldquo;banana&rdquo;. Use &ldquo;playlist&rdquo; not &ldquo;my
+        workout playlist&rdquo;. The data type is the category, not a
+        specific instance.</p>
+
+        <p><strong>When adding fields to a data type, ask: &ldquo;Does this have its own life?&rdquo;</strong></p>
+        <p>If a field has its own properties, can have many instances,
+        or would be useful on its own &mdash; it should probably be a
+        separate data type. Look for the &ldquo;Field or data type?&rdquo; link
+        when editing fields.</p>
+      </div>
+    </details>
+
     <div class="item-grid" id="data-list">
       ${recordTypes.map(renderDataTypeCard).join('')}
     </div>
@@ -159,7 +183,7 @@ function renderDataTypeCard(rt: RecordType): string {
 
 function getCompletionStatus(rt: RecordType): string {
   const hasName = rt.name.length > 0;
-  const userFields = rt.fields.filter(f => !f.isSystem);
+  const userFields = rt.fields.filter((f) => !f.isSystem);
   const hasUserFields = userFields.length > 0;
   const totalFields = rt.fields.length;
 
@@ -191,6 +215,7 @@ function openDetailView(recordId: string): void {
   if (!rt) return;
 
   activeDetailRecordId = recordId;
+  guidanceChecklistOpen = false;
   searchQuery = '';
   searchResults = [];
   searchError = false;
@@ -198,7 +223,8 @@ function openDetailView(recordId: string): void {
   selectedNsid = null;
 
   // Skip choice if identity already saved
-  const hasIdentity = rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
+  const hasIdentity =
+    rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
   detailMode = hasIdentity ? 'create' : 'choice';
 
   // Initialize form state from saved record
@@ -316,44 +342,75 @@ let deletingFieldId: string | null = null;
 
 function renderFieldsSection(rt: RecordType): string {
   const isAdopted = rt.source === 'adopted' && !!rt.adoptedNsid;
-  const hasIdentity = rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
+  const hasIdentity =
+    rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
 
   const showAddBtn = !isAdopted && hasIdentity;
-  const userFields = rt.fields.filter(f => !f.isSystem);
+  const showGuidanceLink = !isAdopted && hasIdentity;
 
   return `
     <div class="fields-section-header">
       <div class="detail-section-heading">Fields</div>
-      ${showAddBtn ? '<button class="add-btn" id="dt-add-field-btn">+ Add Field</button>' : ''}
+      <div class="fields-header-actions">
+        ${showGuidanceLink ? `<a href="#" class="guidance-help-link" id="dt-field-guidance-link" aria-expanded="${guidanceChecklistOpen}">Field or data type?</a>` : ''}
+        ${showAddBtn ? '<button class="add-btn" id="dt-add-field-btn">+ Add Field</button>' : ''}
+      </div>
     </div>
+    ${showGuidanceLink && guidanceChecklistOpen ? renderGuidanceChecklist() : ''}
     ${isAdopted ? `<p class="form-note">These fields are defined by the adopted lexicon (${escapeHtml(rt.adoptedNsid ?? '')}). They cannot be modified.</p>` : ''}
     <div id="dt-field-form-area"></div>
     ${renderFieldList(rt, isAdopted)}
   `;
 }
 
+function renderGuidanceChecklist(): string {
+  return `
+    <div class="guidance-checklist" id="dt-field-guidance">
+      <p><strong>Should this be its own data type, or a field?</strong></p>
+      <p>It should probably be its <strong>own data type</strong> if:</p>
+      <ul>
+        <li>It has its own properties beyond just a name</li>
+        <li>One thing can have many of them (e.g., a list has many items)</li>
+        <li>Multiple data types reference it</li>
+        <li>The list of them grows as users add data</li>
+        <li>Users would want to view or search them on their own</li>
+      </ul>
+      <p>It should probably be a <strong>field</strong> if:</p>
+      <ul>
+        <li>It&rsquo;s a simple label (like a status or category)</li>
+        <li>It&rsquo;s a single value (a name, date, number, yes/no)</li>
+        <li>It only makes sense attached to something else</li>
+      </ul>
+    </div>
+  `;
+}
+
 function renderFieldList(rt: RecordType, isAdopted: boolean): string {
-  const userFields = rt.fields.filter(f => !f.isSystem);
-  const systemFields = rt.fields.filter(f => f.isSystem);
+  const userFields = rt.fields.filter((f) => !f.isSystem);
+  const systemFields = rt.fields.filter((f) => f.isSystem);
 
   // Empty state for new lexicons with only system fields
   if (!isAdopted && userFields.length === 0) {
     return `
       <div class="field-empty-state">No fields defined yet. Click "+ Add Field" to describe what data this record stores.</div>
-      ${systemFields.map(f => renderFieldRow(f, true, isAdopted)).join('')}
+      ${systemFields.map((f) => renderFieldRow(f, true, isAdopted)).join('')}
     `;
   }
 
   // Render user fields first, system fields last
   const rows = [
-    ...userFields.map(f => renderFieldRow(f, false, isAdopted)),
-    ...systemFields.map(f => renderFieldRow(f, true, isAdopted)),
+    ...userFields.map((f) => renderFieldRow(f, false, isAdopted)),
+    ...systemFields.map((f) => renderFieldRow(f, true, isAdopted)),
   ];
 
   return `<div id="dt-field-list">${rows.join('')}</div>`;
 }
 
-function renderFieldRow(field: Field, isSystem: boolean, isAdopted: boolean): string {
+function renderFieldRow(
+  field: Field,
+  isSystem: boolean,
+  isAdopted: boolean,
+): string {
   const isDeleting = deletingFieldId === field.id;
 
   if (isDeleting) {
@@ -381,19 +438,23 @@ function renderFieldRow(field: Field, isSystem: boolean, isAdopted: boolean): st
         ${field.type === 'ref' && field.refTarget ? `<span class="ref-target-label">&rarr; ${escapeHtml(resolveRefTargetName(field.refTarget))}</span>` : ''}
       </div>
       ${field.description ? `<div class="field-row-desc">${escapeHtml(field.description)}</div>` : ''}
-      ${showActions ? `
+      ${
+        showActions
+          ? `
         <div class="field-row-actions">
           <button class="field-edit-btn" data-field-id="${field.id}" aria-label="Edit field" title="Edit">&#9998;</button>
           <button class="field-delete-btn" data-field-id="${field.id}" aria-label="Delete field" title="Delete">&#10005;</button>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
   `;
 }
 
 function resolveRefTargetName(refTarget: string): string {
   const { recordTypes } = getWizardState();
-  const rt = recordTypes.find(r => r.id === refTarget);
+  const rt = recordTypes.find((r) => r.id === refTarget);
   if (rt) return rt.displayName;
   return refTarget; // external NSID
 }
@@ -402,32 +463,55 @@ function resolveRefTargetName(refTarget: string): string {
 function getFieldTypeLabel(field: Field): string {
   if (field.type === 'string') {
     switch (field.format) {
-      case 'datetime': return 'Date & Time';
-      case 'uri': return 'Link (URI)';
-      case 'at-uri': return 'AT Protocol Link';
-      case 'handle': return 'Handle';
-      case 'did': return 'DID';
-      case 'language': return 'Language';
-      case 'nsid': return 'NSID';
-      case 'tid': return 'TID';
-      case 'record-key': return 'Record Key';
-      case 'cid': return 'CID String';
-      default: return 'Text';
+      case 'datetime':
+        return 'Date & Time';
+      case 'uri':
+        return 'Link (URI)';
+      case 'at-uri':
+        return 'AT Protocol Link';
+      case 'handle':
+        return 'Handle';
+      case 'did':
+        return 'DID';
+      case 'language':
+        return 'Language';
+      case 'nsid':
+        return 'NSID';
+      case 'tid':
+        return 'TID';
+      case 'record-key':
+        return 'Record Key';
+      case 'cid':
+        return 'CID String';
+      default:
+        return 'Text';
     }
   }
   switch (field.type) {
-    case 'integer': return 'Number';
-    case 'boolean': return 'True/False';
-    case 'blob': return 'File Upload';
-    case 'bytes': return 'Raw Bytes';
-    case 'cid-link': return 'Content Hash';
-    case 'array-string': return 'List of Text';
-    case 'array-integer': return 'List of Numbers';
-    case 'ref': return 'Reference';
-    case 'union': return 'Union (complex)';
-    case 'object': return 'Object (nested)';
-    case 'unknown': return 'Unknown';
-    default: return field.type;
+    case 'integer':
+      return 'Number';
+    case 'boolean':
+      return 'True/False';
+    case 'blob':
+      return 'File Upload';
+    case 'bytes':
+      return 'Raw Bytes';
+    case 'cid-link':
+      return 'Content Hash';
+    case 'array-string':
+      return 'List of Text';
+    case 'array-integer':
+      return 'List of Numbers';
+    case 'ref':
+      return 'Reference';
+    case 'union':
+      return 'Union (complex)';
+    case 'object':
+      return 'Object (nested)';
+    case 'unknown':
+      return 'Unknown';
+    default:
+      return field.type;
   }
 }
 
@@ -451,6 +535,24 @@ function renderSourceChoice(): string {
           <span class="source-choice-card-desc">Adopt a definition that other apps already use, so your data works across apps</span>
         </button>
       </div>
+      <details class="guidance-details">
+        <summary>How do I choose?</summary>
+        <div class="guidance-details-body">
+          <p><strong>Use an existing definition when:</strong></p>
+          <ul>
+            <li>You want your app&rsquo;s data to work with other apps (e.g., posts that show up on Bluesky)</li>
+            <li>Someone has already defined a schema that fits your data</li>
+            <li>You&rsquo;re building on top of an established ecosystem</li>
+          </ul>
+          <p><strong>Define your own when:</strong></p>
+          <ul>
+            <li>Your data is unique to your app</li>
+            <li>Existing definitions don&rsquo;t match your needs</li>
+            <li>You want full control over the schema</li>
+          </ul>
+          <p><strong>Important:</strong> Adopting a definition means your app creates data that other apps can see and interact with. If users don&rsquo;t expect their data to appear elsewhere, define your own.</p>
+        </div>
+      </details>
     </div>
   `;
 }
@@ -494,14 +596,14 @@ function renderCreateNewForm(rt: RecordType): string {
           ${renderNamespaceOption(
             'thelexfiles-temp',
             'theLexFiles.com \u2014 experimental',
-            'Uses the .temp. namespace to signal that this definition is experimental and may change. Choose this if you\'re prototyping.',
+            "Uses the .temp. namespace to signal that this definition is experimental and may change. Choose this if you're prototyping.",
             fs.namespaceOption,
             false,
           )}
           ${renderNamespaceOption(
             'byo-domain',
             'My own domain',
-            'Use a domain you control. You\'ll need to configure DNS records and handle publishing yourself.',
+            "Use a domain you control. You'll need to configure DNS records and handle publishing yourself.",
             fs.namespaceOption,
             false,
           )}
@@ -656,13 +758,16 @@ function renderSchemaPreview(): string {
   const keyType = mainDef?.key ?? 'tid';
 
   // Extract fields from record properties
-  const fields = isRecord && mainDef?.record?.properties
-    ? Object.entries(mainDef.record.properties).map(([name, schema]) => {
-        const s = schema as Record<string, unknown>;
-        const required = mainDef.record?.required?.includes(name) ?? false;
-        return `<li>${escapeHtml(name)}: ${escapeHtml(String(s.type ?? s.ref ?? 'unknown'))}${required ? ' (required)' : ''}</li>`;
-      }).join('')
-    : '';
+  const fields =
+    isRecord && mainDef?.record?.properties
+      ? Object.entries(mainDef.record.properties)
+          .map(([name, schema]) => {
+            const s = schema as Record<string, unknown>;
+            const required = mainDef.record?.required?.includes(name) ?? false;
+            return `<li>${escapeHtml(name)}: ${escapeHtml(String(s.type ?? s.ref ?? 'unknown'))}${required ? ' (required)' : ''}</li>`;
+          })
+          .join('')
+      : '';
 
   const nonRecordWarning = !isRecord
     ? `<div class="byo-domain-warning">This lexicon is a ${escapeHtml(defType)}, not a record type. Only record-type lexicons can be adopted as data types.</div>`
@@ -755,7 +860,9 @@ function wireDetailView(): void {
 
 function wireCreateNewForm(): void {
   // Record name input
-  const nameInput = document.getElementById('dt-record-name') as HTMLInputElement | null;
+  const nameInput = document.getElementById(
+    'dt-record-name',
+  ) as HTMLInputElement | null;
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       formState!.name = nameInput.value;
@@ -766,7 +873,9 @@ function wireCreateNewForm(): void {
   }
 
   // Description textarea
-  const descInput = document.getElementById('dt-description') as HTMLTextAreaElement | null;
+  const descInput = document.getElementById(
+    'dt-description',
+  ) as HTMLTextAreaElement | null;
   if (descInput) {
     descInput.addEventListener('input', () => {
       formState!.description = descInput.value;
@@ -784,7 +893,9 @@ function wireCreateNewForm(): void {
   });
 
   // Username input
-  const usernameInput = document.getElementById('dt-username') as HTMLInputElement | null;
+  const usernameInput = document.getElementById(
+    'dt-username',
+  ) as HTMLInputElement | null;
   if (usernameInput) {
     usernameInput.addEventListener('input', () => {
       formState!.lexUsername = usernameInput.value;
@@ -795,7 +906,9 @@ function wireCreateNewForm(): void {
   }
 
   // Custom domain input
-  const domainInput = document.getElementById('dt-custom-domain') as HTMLInputElement | null;
+  const domainInput = document.getElementById(
+    'dt-custom-domain',
+  ) as HTMLInputElement | null;
   if (domainInput) {
     domainInput.addEventListener('input', () => {
       formState!.customDomain = domainInput.value;
@@ -806,7 +919,9 @@ function wireCreateNewForm(): void {
   }
 
   // Record key type select
-  const keyTypeSelect = document.getElementById('dt-record-key-type') as HTMLSelectElement | null;
+  const keyTypeSelect = document.getElementById(
+    'dt-record-key-type',
+  ) as HTMLSelectElement | null;
   if (keyTypeSelect) {
     keyTypeSelect.addEventListener('change', () => {
       formState!.recordKeyType = keyTypeSelect.value as 'tid' | 'any';
@@ -843,14 +958,17 @@ function wireBrowseUI(): void {
     backToCreate.addEventListener('click', (e) => {
       e.preventDefault();
       const rt = getActiveRecordType();
-      const hasIdentity = rt && rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
+      const hasIdentity =
+        rt && rt.name.length > 0 && (rt.namespaceOption || rt.adoptedNsid);
       detailMode = hasIdentity ? 'create' : 'choice';
       rerenderSourceSection();
     });
   }
 
   // Search input
-  const searchInput = document.getElementById('dt-search-input') as HTMLInputElement | null;
+  const searchInput = document.getElementById(
+    'dt-search-input',
+  ) as HTMLInputElement | null;
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -880,6 +998,16 @@ function wireAdoptedState(): void {
 }
 
 function wireFieldsSection(rt: RecordType): void {
+  // Guidance checklist toggle
+  const guidanceLink = document.getElementById('dt-field-guidance-link');
+  if (guidanceLink) {
+    guidanceLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      guidanceChecklistOpen = !guidanceChecklistOpen;
+      rerenderPanel();
+    });
+  }
+
   // Add field button
   const addBtn = document.getElementById('dt-add-field-btn');
   if (addBtn) {
@@ -887,13 +1015,13 @@ function wireFieldsSection(rt: RecordType): void {
   }
 
   // Edit/delete buttons via delegation
-  document.querySelectorAll('.field-edit-btn').forEach(btn => {
+  document.querySelectorAll('.field-edit-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = (btn as HTMLElement).dataset.fieldId!;
       startFieldEdit(rt, id);
     });
   });
-  document.querySelectorAll('.field-delete-btn').forEach(btn => {
+  document.querySelectorAll('.field-delete-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = (btn as HTMLElement).dataset.fieldId!;
       showDeleteConfirmation(id);
@@ -901,13 +1029,13 @@ function wireFieldsSection(rt: RecordType): void {
   });
 
   // Delete confirmation buttons
-  document.querySelectorAll('.field-confirm-delete-btn').forEach(btn => {
+  document.querySelectorAll('.field-confirm-delete-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = (btn as HTMLElement).dataset.fieldId!;
       confirmDeleteField(rt, id);
     });
   });
-  document.querySelectorAll('.field-cancel-delete-btn').forEach(btn => {
+  document.querySelectorAll('.field-cancel-delete-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       cancelDeleteField();
     });
@@ -937,8 +1065,14 @@ function handleSave(): void {
   rt.name = formState.name;
   rt.description = formState.description;
   rt.namespaceOption = formState.namespaceOption;
-  rt.lexUsername = formState.namespaceOption !== 'byo-domain' ? formState.lexUsername : undefined;
-  rt.customDomain = formState.namespaceOption === 'byo-domain' ? formState.customDomain : undefined;
+  rt.lexUsername =
+    formState.namespaceOption !== 'byo-domain'
+      ? formState.lexUsername
+      : undefined;
+  rt.customDomain =
+    formState.namespaceOption === 'byo-domain'
+      ? formState.customDomain
+      : undefined;
   rt.recordKeyType = formState.recordKeyType;
   rt.source = 'new';
 
@@ -995,7 +1129,8 @@ async function handleSelectResult(nsid: string): Promise<void> {
     // Show error inline
     const preview = document.getElementById('dt-schema-preview');
     if (preview) {
-      preview.innerHTML = '<div class="search-error-msg">Failed to load schema. Check the NSID and try again.</div>';
+      preview.innerHTML =
+        '<div class="search-error-msg">Failed to load schema. Check the NSID and try again.</div>';
     }
   }
 }
@@ -1008,7 +1143,8 @@ function handleAdopt(): void {
   if (mainDef?.type !== 'record') return;
 
   // Check if confirmation is needed
-  const hasExistingData = rt.name.length > 0 || rt.fields.length > 0 || rt.namespaceOption;
+  const hasExistingData =
+    rt.name.length > 0 || rt.fields.length > 0 || rt.namespaceOption;
   if (hasExistingData) {
     if (
       !confirm(
@@ -1035,7 +1171,12 @@ function handleAdopt(): void {
   if (mainDef.record?.properties) {
     const requiredFields = mainDef.record?.required ?? [];
     rt.fields = Object.entries(mainDef.record.properties).map(
-      ([name, schema]) => mapSchemaPropertyToField(name, schema as Record<string, unknown>, requiredFields),
+      ([name, schema]) =>
+        mapSchemaPropertyToField(
+          name,
+          schema as Record<string, unknown>,
+          requiredFields,
+        ),
     );
   }
 
@@ -1052,7 +1193,10 @@ function handleAdopt(): void {
 }
 
 function handleChangeAdopted(): void {
-  if (!confirm('Stop using this lexicon? Your imported fields will be cleared.')) return;
+  if (
+    !confirm('Stop using this lexicon? Your imported fields will be cleared.')
+  )
+    return;
 
   const rt = getActiveRecordType();
   if (!rt) return;
@@ -1086,7 +1230,7 @@ function showFieldForm(rt: RecordType, existing?: Field): void {
 }
 
 function startFieldEdit(rt: RecordType, fieldId: string): void {
-  const field = rt.fields.find(f => f.id === fieldId);
+  const field = rt.fields.find((f) => f.id === fieldId);
   if (!field) return;
   showFieldForm(rt, field);
 }
@@ -1100,7 +1244,9 @@ function closeFieldForm(): void {
 function renderFieldForm(rt: RecordType, existing?: Field): string {
   const saveLabel = existing ? 'Save' : 'Add Field';
   const typeValue = existing ? toTypeValue(existing) : '';
-  const constraintsHtml = typeValue ? renderFieldConstraints(typeValue, rt, existing) : '';
+  const constraintsHtml = typeValue
+    ? renderFieldConstraints(typeValue, rt, existing)
+    : '';
 
   return `
     <div class="inline-form open" id="dt-field-form">
@@ -1164,7 +1310,11 @@ function renderFieldForm(rt: RecordType, existing?: Field): string {
   `;
 }
 
-function renderFieldConstraints(typeValue: string, rt: RecordType, existing?: Field): string {
+function renderFieldConstraints(
+  typeValue: string,
+  rt: RecordType,
+  existing?: Field,
+): string {
   if (typeValue === 'string') {
     // Plain text — show format dropdown + length constraints
     const fmt = existing?.format ?? '';
@@ -1310,13 +1460,17 @@ function renderFieldConstraints(typeValue: string, rt: RecordType, existing?: Fi
 
 function renderRefTargetSelector(rt: RecordType, existing?: Field): string {
   const { recordTypes } = getWizardState();
-  const otherTypes = recordTypes.filter(r => r.id !== rt.id);
-  const isExternal = existing?.refTarget && !recordTypes.some(r => r.id === existing.refTarget);
+  const otherTypes = recordTypes.filter((r) => r.id !== rt.id);
+  const isExternal =
+    existing?.refTarget &&
+    !recordTypes.some((r) => r.id === existing.refTarget);
 
-  const options = otherTypes.map(r => {
-    const selected = existing?.refTarget === r.id ? ' selected' : '';
-    return `<option value="${r.id}"${selected}>${escapeHtml(r.displayName)}</option>`;
-  }).join('');
+  const options = otherTypes
+    .map((r) => {
+      const selected = existing?.refTarget === r.id ? ' selected' : '';
+      return `<option value="${r.id}"${selected}>${escapeHtml(r.displayName)}</option>`;
+    })
+    .join('');
 
   return `
     <div class="form-group">
@@ -1338,7 +1492,14 @@ function renderRefTargetSelector(rt: RecordType, existing?: Field): string {
 function toTypeValue(field: Field): string {
   if (field.type === 'string' && field.format) {
     // Only return compound for shortcut types
-    const shortcuts = ['datetime', 'uri', 'at-uri', 'handle', 'did', 'language'];
+    const shortcuts = [
+      'datetime',
+      'uri',
+      'at-uri',
+      'handle',
+      'did',
+      'language',
+    ];
     if (shortcuts.includes(field.format)) return `string:${field.format}`;
     // For other formats, user selected "Text" and picked format from format dropdown
     return 'string';
@@ -1356,12 +1517,17 @@ function parseTypeValue(value: string): { type: string; format?: string } {
 
 function wireFieldForm(rt: RecordType): void {
   // Type dropdown changes
-  const typeSelect = document.getElementById('dt-field-type') as HTMLSelectElement | null;
+  const typeSelect = document.getElementById(
+    'dt-field-type',
+  ) as HTMLSelectElement | null;
   if (typeSelect) {
     typeSelect.addEventListener('change', () => {
       const constraintsArea = document.getElementById('dt-field-constraints');
       if (constraintsArea) {
-        constraintsArea.innerHTML = renderFieldConstraints(typeSelect.value, rt);
+        constraintsArea.innerHTML = renderFieldConstraints(
+          typeSelect.value,
+          rt,
+        );
         wireRefTargetEvents();
       }
       validateFieldForm(rt);
@@ -1369,7 +1535,9 @@ function wireFieldForm(rt: RecordType): void {
   }
 
   // Name input validation
-  const nameInput = document.getElementById('dt-field-name') as HTMLInputElement | null;
+  const nameInput = document.getElementById(
+    'dt-field-name',
+  ) as HTMLInputElement | null;
   if (nameInput) {
     nameInput.addEventListener('input', () => validateFieldForm(rt));
   }
@@ -1380,10 +1548,10 @@ function wireFieldForm(rt: RecordType): void {
   // Save/cancel
   const area = document.getElementById('dt-field-form-area');
   if (area) {
-    area.querySelectorAll('.field-save-btn').forEach(btn => {
+    area.querySelectorAll('.field-save-btn').forEach((btn) => {
       btn.addEventListener('click', () => saveField(rt));
     });
-    area.querySelectorAll('.field-cancel-btn').forEach(btn => {
+    area.querySelectorAll('.field-cancel-btn').forEach((btn) => {
       btn.addEventListener('click', () => closeFieldForm());
     });
   }
@@ -1395,21 +1563,32 @@ function wireFieldForm(rt: RecordType): void {
 }
 
 function wireRefTargetEvents(): void {
-  const refSelect = document.getElementById('dt-field-ref-target') as HTMLSelectElement | null;
+  const refSelect = document.getElementById(
+    'dt-field-ref-target',
+  ) as HTMLSelectElement | null;
   if (refSelect) {
     refSelect.addEventListener('change', () => {
-      const externalGroup = document.getElementById('dt-field-ref-external-group');
+      const externalGroup = document.getElementById(
+        'dt-field-ref-external-group',
+      );
       if (externalGroup) {
-        externalGroup.style.display = refSelect.value === '__external__' ? 'block' : 'none';
+        externalGroup.style.display =
+          refSelect.value === '__external__' ? 'block' : 'none';
       }
     });
   }
 }
 
 function validateFieldForm(rt: RecordType): boolean {
-  const nameInput = document.getElementById('dt-field-name') as HTMLInputElement | null;
-  const typeSelect = document.getElementById('dt-field-type') as HTMLSelectElement | null;
-  const saveBtn = document.querySelector('.field-save-btn') as HTMLButtonElement | null;
+  const nameInput = document.getElementById(
+    'dt-field-name',
+  ) as HTMLInputElement | null;
+  const typeSelect = document.getElementById(
+    'dt-field-type',
+  ) as HTMLSelectElement | null;
+  const saveBtn = document.querySelector(
+    '.field-save-btn',
+  ) as HTMLButtonElement | null;
   const errorEl = document.getElementById('dt-field-name-error');
 
   if (!nameInput || !typeSelect || !saveBtn) return false;
@@ -1421,7 +1600,8 @@ function validateFieldForm(rt: RecordType): boolean {
   if (!name) {
     valid = false;
   } else if (/^[^a-z]/.test(name)) {
-    errorMsg = 'Field name must start with a lowercase letter (lowerCamelCase).';
+    errorMsg =
+      'Field name must start with a lowercase letter (lowerCamelCase).';
     valid = false;
   } else if (/[^a-zA-Z0-9]/.test(name)) {
     errorMsg = 'Only letters and digits are allowed.';
@@ -1431,7 +1611,9 @@ function validateFieldForm(rt: RecordType): boolean {
     valid = false;
   } else {
     // Check for duplicate names (excluding current field being edited)
-    const duplicate = rt.fields.some(f => f.name === name && f.id !== editingFieldId);
+    const duplicate = rt.fields.some(
+      (f) => f.name === name && f.id !== editingFieldId,
+    );
     if (duplicate) {
       errorMsg = 'A field with this name already exists.';
       valid = false;
@@ -1448,10 +1630,18 @@ function validateFieldForm(rt: RecordType): boolean {
 }
 
 function saveField(rt: RecordType): void {
-  const nameInput = document.getElementById('dt-field-name') as HTMLInputElement | null;
-  const typeSelect = document.getElementById('dt-field-type') as HTMLSelectElement | null;
-  const requiredCheck = document.getElementById('dt-field-required') as HTMLInputElement | null;
-  const descInput = document.getElementById('dt-field-description') as HTMLTextAreaElement | null;
+  const nameInput = document.getElementById(
+    'dt-field-name',
+  ) as HTMLInputElement | null;
+  const typeSelect = document.getElementById(
+    'dt-field-type',
+  ) as HTMLSelectElement | null;
+  const requiredCheck = document.getElementById(
+    'dt-field-required',
+  ) as HTMLInputElement | null;
+  const descInput = document.getElementById(
+    'dt-field-description',
+  ) as HTMLTextAreaElement | null;
 
   if (!nameInput || !typeSelect) return;
 
@@ -1473,7 +1663,9 @@ function saveField(rt: RecordType): void {
   // Read type-specific constraints
   if (type === 'string' && !format) {
     // Plain text type — read format from format dropdown
-    const formatSelect = document.getElementById('dt-field-format') as HTMLSelectElement | null;
+    const formatSelect = document.getElementById(
+      'dt-field-format',
+    ) as HTMLSelectElement | null;
     if (formatSelect?.value) field.format = formatSelect.value;
     field.maxLength = readNumberInput('dt-field-maxlength');
     field.minLength = readNumberInput('dt-field-minlength');
@@ -1485,13 +1677,20 @@ function saveField(rt: RecordType): void {
     field.minimum = readNumberInput('dt-field-minimum');
     field.maximum = readNumberInput('dt-field-maximum');
   } else if (type === 'blob') {
-    const acceptInput = document.getElementById('dt-field-accept') as HTMLInputElement | null;
+    const acceptInput = document.getElementById(
+      'dt-field-accept',
+    ) as HTMLInputElement | null;
     if (acceptInput?.value.trim()) {
-      field.accept = acceptInput.value.split(',').map(s => s.trim()).filter(Boolean);
+      field.accept = acceptInput.value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
     const sizeVal = readNumberInput('dt-field-maxsize');
     if (sizeVal != null) {
-      const unitSelect = document.getElementById('dt-field-maxsize-unit') as HTMLSelectElement | null;
+      const unitSelect = document.getElementById(
+        'dt-field-maxsize-unit',
+      ) as HTMLSelectElement | null;
       const unit = unitSelect?.value ?? 'MB';
       field.maxSize = unit === 'MB' ? sizeVal * 1048576 : sizeVal * 1024;
     }
@@ -1502,9 +1701,13 @@ function saveField(rt: RecordType): void {
     field.minLength = readNumberInput('dt-field-minlength');
     field.maxLength = readNumberInput('dt-field-maxlength');
   } else if (type === 'ref') {
-    const refSelect = document.getElementById('dt-field-ref-target') as HTMLSelectElement | null;
+    const refSelect = document.getElementById(
+      'dt-field-ref-target',
+    ) as HTMLSelectElement | null;
     if (refSelect?.value === '__external__') {
-      const extInput = document.getElementById('dt-field-ref-external') as HTMLInputElement | null;
+      const extInput = document.getElementById(
+        'dt-field-ref-external',
+      ) as HTMLInputElement | null;
       field.refTarget = extInput?.value.trim() || undefined;
     } else if (refSelect?.value) {
       field.refTarget = refSelect.value;
@@ -1515,11 +1718,11 @@ function saveField(rt: RecordType): void {
 
   if (editingFieldId) {
     // Update existing
-    const idx = rt.fields.findIndex(f => f.id === editingFieldId);
+    const idx = rt.fields.findIndex((f) => f.id === editingFieldId);
     if (idx !== -1) rt.fields[idx] = field;
   } else {
     // Insert before system fields
-    const systemIdx = rt.fields.findIndex(f => f.isSystem);
+    const systemIdx = rt.fields.findIndex((f) => f.isSystem);
     if (systemIdx !== -1) {
       rt.fields.splice(systemIdx, 0, field);
     } else {
@@ -1548,7 +1751,7 @@ function showDeleteConfirmation(fieldId: string): void {
 }
 
 function confirmDeleteField(rt: RecordType, fieldId: string): void {
-  rt.fields = rt.fields.filter(f => f.id !== fieldId);
+  rt.fields = rt.fields.filter((f) => f.id !== fieldId);
   deletingFieldId = null;
   saveWizardState(getWizardState());
   rerenderFieldsSection(rt);
@@ -1561,7 +1764,9 @@ function cancelDeleteField(): void {
 }
 
 function rerenderFieldsSection(rt: RecordType): void {
-  const section = document.querySelector('.data-detail .detail-section:last-child');
+  const section = document.querySelector(
+    '.data-detail .detail-section:last-child',
+  );
   if (section) {
     section.innerHTML = renderFieldsSection(rt);
     wireFieldsSection(rt);
@@ -1602,7 +1807,8 @@ function validateRecordName(value: string): boolean {
     return false;
   }
   if (/[^a-zA-Z0-9]/.test(value)) {
-    errorEl.textContent = 'Only letters (a\u2013z, A\u2013Z) and digits (0\u20139) are allowed.';
+    errorEl.textContent =
+      'Only letters (a\u2013z, A\u2013Z) and digits (0\u20139) are allowed.';
     return false;
   }
   if (value.length > 63) {
@@ -1654,7 +1860,8 @@ function validateDomain(value: string): boolean {
     return false;
   }
   if (/^https?:\/\//i.test(value)) {
-    errorEl.textContent = 'Enter the domain without a protocol (no http:// or https://).';
+    errorEl.textContent =
+      'Enter the domain without a protocol (no http:// or https://).';
     return false;
   }
   errorEl.textContent = '';
@@ -1663,18 +1870,28 @@ function validateDomain(value: string): boolean {
 
 function isFormValid(fs: CreateNewFormState): boolean {
   // Name is required and must be valid
-  if (!fs.name || /^\d/.test(fs.name) || /[^a-zA-Z0-9]/.test(fs.name) || fs.name.length > 63) {
+  if (
+    !fs.name ||
+    /^\d/.test(fs.name) ||
+    /[^a-zA-Z0-9]/.test(fs.name) ||
+    fs.name.length > 63
+  ) {
     return false;
   }
 
   if (fs.namespaceOption === 'byo-domain') {
-    return fs.customDomain.includes('.') && !/\s/.test(fs.customDomain) && !/^https?:\/\//i.test(fs.customDomain);
+    return (
+      fs.customDomain.includes('.') &&
+      !/\s/.test(fs.customDomain) &&
+      !/^https?:\/\//i.test(fs.customDomain)
+    );
   }
 
   // theLexFiles options need a valid username
   if (!fs.lexUsername) return false;
   if (/[^a-z0-9-]/.test(fs.lexUsername)) return false;
-  if (fs.lexUsername.startsWith('-') || fs.lexUsername.endsWith('-')) return false;
+  if (fs.lexUsername.startsWith('-') || fs.lexUsername.endsWith('-'))
+    return false;
 
   return true;
 }
@@ -1703,7 +1920,9 @@ function updateNsidPreview(): void {
 
 function updateSaveButtonState(): void {
   if (!formState) return;
-  const btn = document.getElementById('dt-save-btn') as HTMLButtonElement | null;
+  const btn = document.getElementById(
+    'dt-save-btn',
+  ) as HTMLButtonElement | null;
   if (btn) {
     btn.disabled = !isFormValid(formState);
   }
@@ -1773,7 +1992,9 @@ function wireBrowseResultEvents(): void {
   const resultsContainer = document.getElementById('dt-search-results');
   if (resultsContainer) {
     resultsContainer.addEventListener('click', (e) => {
-      const item = (e.target as HTMLElement).closest('.search-result-item') as HTMLElement | null;
+      const item = (e.target as HTMLElement).closest(
+        '.search-result-item',
+      ) as HTMLElement | null;
       if (!item) return;
       const nsid = item.dataset.nsid;
       if (nsid) handleSelectResult(nsid);
@@ -1784,7 +2005,9 @@ function wireBrowseResultEvents(): void {
   const lookupBtn = document.getElementById('dt-lookup-btn');
   if (lookupBtn) {
     lookupBtn.addEventListener('click', () => {
-      const nsidInput = document.getElementById('dt-manual-nsid') as HTMLInputElement | null;
+      const nsidInput = document.getElementById(
+        'dt-manual-nsid',
+      ) as HTMLInputElement | null;
       if (nsidInput?.value.trim()) {
         handleSelectResult(nsidInput.value.trim());
       }
@@ -1839,7 +2062,11 @@ function mapSchemaPropertyToField(
 
   // Ref type
   if (type === 'ref') {
-    return { ...base, type: 'ref', refTarget: s.ref ? String(s.ref) : undefined };
+    return {
+      ...base,
+      type: 'ref',
+      refTarget: s.ref ? String(s.ref) : undefined,
+    };
   }
 
   // Union type (unsupported — display only)
@@ -1918,7 +2145,9 @@ function mapSchemaPropertyToField(
 /** Ensure source:'new' RecordTypes have the createdAt system field */
 function ensureSystemFields(rt: RecordType): void {
   if (rt.source !== 'new') return;
-  const hasCreatedAt = rt.fields.some(f => f.name === 'createdAt' && f.isSystem);
+  const hasCreatedAt = rt.fields.some(
+    (f) => f.name === 'createdAt' && f.isSystem,
+  );
   if (!hasCreatedAt) {
     rt.fields.push(makeSystemCreatedAtField());
     saveWizardState(getWizardState());
@@ -1928,10 +2157,7 @@ function ensureSystemFields(rt: RecordType): void {
 // ── HTML helpers ──────────────────────────────────────────────────────
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function escapeAttr(str: string): string {

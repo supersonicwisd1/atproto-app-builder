@@ -242,6 +242,17 @@ function renderTypeFields(
           existing type or enter a new one. Focus on the thing being acted on &mdash; if your
           action involves two things (like &ldquo;add an item to a list&rdquo;), the item is the
           data type. The list is a separate type you&rsquo;ll connect later.</div>
+          <details class="guidance-details">
+            <summary>Does your action involve two things?</summary>
+            <div class="guidance-details-body">
+              <p><em>&ldquo;I need to add an item to my grocery list&rdquo;</em> becomes:</p>
+              <ul>
+                <li>I need to <strong>add</strong> a <strong>grocery item</strong> <span class="guidance-muted">(the thing being acted on)</span></li>
+                <li>I need to <strong>create</strong> a <strong>grocery list</strong> <span class="guidance-muted">(the container &mdash; a separate data type)</span></li>
+              </ul>
+              <p>Focus each requirement on one type of thing. You&rsquo;ll connect them in the Data section.</p>
+            </div>
+          </details>
         </div>
       </div>
     `;
