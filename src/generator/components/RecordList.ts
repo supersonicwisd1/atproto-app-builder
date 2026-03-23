@@ -63,8 +63,8 @@ export function generateListViewTs(
  * List View - displays all ${primaryRecord.name} records
  */
 
-import { ${pascalName}Data } from '../types';
-import { createButton, clearContainer, formatDate } from '../UIComponents';
+import { ${pascalName}Data } from '../atproto/types';
+import { createButton, clearContainer, formatDate } from '../ui';
 
 interface ListViewCallbacks {
   onItemClick: (uri: string) => void;

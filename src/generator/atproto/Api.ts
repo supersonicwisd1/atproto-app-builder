@@ -9,7 +9,7 @@ import { getTypeScriptType } from './Types';
 export function generateApiTs(recordTypes: RecordType[], domain: string): string {
   let output = `import { OAuthSession } from '@atproto/oauth-client-browser';
 import { Agent } from '@atproto/api';
-import { session } from './Auth';
+import { session } from './auth';
 import {
   PaginationOptions,
   CreateRecordResponse,

@@ -2,32 +2,32 @@
  * App entry point generator
  */
 
-import type { RecordType, AppConfig } from '../types/wizard';
-import { toPascalCase } from '../utils';
+import type { RecordType, AppConfig } from '../../types/wizard';
+import { toPascalCase } from '../../utils';
 
 export function generateAppTs(recordTypes: RecordType[], appConfig: AppConfig): string {
   const primaryRecord = recordTypes.find(r => r.name === appConfig.primaryRecordType) || recordTypes[0];
   const pascalName = toPascalCase(primaryRecord.name);
 
-  return `import Store from './services/Store';
-import { NavigationManager } from './services/Navigation';
-import { createButton } from './services/UIComponents';
+  return `import Store from './store';
+import { NavigationManager } from './router';
 import {
+  createButton,
   showLoadingScreen,
   showLoginScreen,
   showAppScreen,
   showStatus,
-} from './services/UIState';
+} from './ui';
 import {
   restoreSession,
   updateUserInfo,
   loadUserData,
-} from './services/SessionManager';
+} from './atproto/session';
 import {
   initOAuthClient,
   signIn,
   signOut,
-} from './services/Auth';
+} from './atproto/auth';
 
 declare global {
   interface Window {

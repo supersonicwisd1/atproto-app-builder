@@ -23,13 +23,13 @@ export function generateSessionManagerTs(recordTypes: RecordType[]): string {
  * Session management for user authentication and data loading
  */
 
-import { ${imports} } from './API';
-import { storeManager } from './Store';
+import { ${imports} } from './api';
+import { storeManager } from '../store';
 import {
   restoreSession as restoreAuthSession,
   getUserProfile,
   getSession,
-} from './Auth';
+} from './auth';
 
 export async function updateUserInfo(): Promise<void> {
   try {

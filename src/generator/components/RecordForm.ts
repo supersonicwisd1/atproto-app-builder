@@ -93,10 +93,10 @@ export function generateFormViewTs(recordTypes: RecordType[], appConfig: AppConf
  * Form View - create/edit ${primaryRecord.name} records
  */
 
-import { ${pascalName}Data } from '../types';
-import { create${pascalName}, update${pascalName}, get${pascalName}s } from '../API';
-import { storeManager } from '../Store';
-import { createButton, clearContainer } from '../UIComponents';
+import { ${pascalName}Data } from '../atproto/types';
+import { create${pascalName}, update${pascalName}, get${pascalName}s } from '../atproto/api';
+import { storeManager } from '../store';
+import { createButton, clearContainer } from '../ui';
 
 interface FormViewCallbacks {
   onSave: () => void;

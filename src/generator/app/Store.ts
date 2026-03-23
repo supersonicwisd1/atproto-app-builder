@@ -15,7 +15,7 @@ export function generateStoreTs(recordTypes: RecordType[]): string {
 import {
   StoreType,
   ${imports},
-} from './types';
+} from './atproto/types';
 
 type StoreListener = (store: StoreType) => void;
 

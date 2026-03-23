@@ -77,10 +77,10 @@ export function generateDetailViewTs(recordTypes: RecordType[], appConfig: AppCo
  * Detail View - displays a single ${primaryRecord.name} record
  */
 
-import { ${pascalName}Data } from '../types';
-import { delete${pascalName} } from '../API';
-import { storeManager } from '../Store';
-import { createButton, clearContainer, formatDate, createMediaPreview, createTagsDisplay } from '../UIComponents';
+import { ${pascalName}Data } from '../atproto/types';
+import { delete${pascalName} } from '../atproto/api';
+import { storeManager } from '../store';
+import { createButton, clearContainer, formatDate, createMediaPreview, createTagsDisplay } from '../ui';
 
 interface DetailViewCallbacks {
   onBack: () => void;
@@ -114,7 +114,7 @@ ${fieldDisplay}
       try {
         await delete${pascalName}(item.uri);
         // Refresh the store
-        const { get${pascalName}s } = await import('../API');
+        const { get${pascalName}s } = await import('../atproto/api');
         const response = await get${pascalName}s();
         storeManager.set${pascalName}s(response.${camelName}s);
         callbacks.onDelete();

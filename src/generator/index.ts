@@ -15,23 +15,24 @@ import { generateTsConfig } from './config/TsConfig';
 import { generateIndexHtml } from './templates/IndexHtml';
 import { generateStyles } from './templates/Styles';
 
-// Service generators
-import { generateAuthTs } from './services/Auth';
-import { generateTypesTs } from './services/Types';
-import { generateStoreTs } from './services/Store';
-import { generateApiTs } from './services/Api';
-import { generateUIStateTs } from './services/UIState';
-import { generateUIComponentsTs } from './services/UIComponents';
-import { generateNavigationTs } from './services/Navigation';
-import { generateSessionManagerTs } from './services/SessionManager';
+// AT Protocol generators
+import { generateAuthTs } from './atproto/Auth';
+import { generateTypesTs } from './atproto/Types';
+import { generateApiTs } from './atproto/Api';
+import { generateSessionManagerTs } from './atproto/Session';
 
-// View generators
-import { generateListViewTs } from './views/ListView';
-import { generateDetailViewTs } from './views/DetailView';
-import { generateFormViewTs } from './views/FormView';
+// App generators
+import { generateAppTs } from './app/Main';
+import { generateStoreTs } from './app/Store';
+import { generateUITs } from './app/UI';
+import { generateNavigationTs } from './app/Router';
+
+// Component generators
+import { generateListViewTs } from './components/RecordList';
+import { generateDetailViewTs } from './components/RecordDetail';
+import { generateFormViewTs } from './components/RecordForm';
 
 // Other generators
-import { generateAppTs } from './AppEntry';
 import { generateRecordLexicon, computeRecordTypeNsid } from './Lexicon';
 import { generateReadme } from './Readme';
 
@@ -46,22 +47,23 @@ export function generateAllFiles(wizardState: WizardState, appConfig: AppConfig)
   files['tsconfig.json'] = generateTsConfig();
   files['index.html'] = generateIndexHtml(appInfo, recordTypes, appConfig);
   files['styles.css'] = generateStyles();
-  files['app.ts'] = generateAppTs(recordTypes, appConfig);
 
-  // Services
-  files['services/Auth.ts'] = generateAuthTs();
-  files['services/types.ts'] = generateTypesTs(recordTypes, domain);
-  files['services/Store.ts'] = generateStoreTs(recordTypes);
-  files['services/API.ts'] = generateApiTs(recordTypes, domain);
-  files['services/UIState.ts'] = generateUIStateTs();
-  files['services/UIComponents.ts'] = generateUIComponentsTs();
-  files['services/Navigation.ts'] = generateNavigationTs(recordTypes, appConfig);
-  files['services/SessionManager.ts'] = generateSessionManagerTs(recordTypes);
+  // App entry and core
+  files['src/main.ts'] = generateAppTs(recordTypes, appConfig);
+  files['src/router.ts'] = generateNavigationTs(recordTypes, appConfig);
+  files['src/store.ts'] = generateStoreTs(recordTypes);
+  files['src/ui.ts'] = generateUITs();
 
-  // Views
-  files['services/views/ListView.ts'] = generateListViewTs(recordTypes, appConfig);
-  files['services/views/DetailView.ts'] = generateDetailViewTs(recordTypes, appConfig);
-  files['services/views/FormView.ts'] = generateFormViewTs(recordTypes, appConfig);
+  // AT Protocol layer
+  files['src/atproto/auth.ts'] = generateAuthTs();
+  files['src/atproto/types.ts'] = generateTypesTs(recordTypes, domain);
+  files['src/atproto/api.ts'] = generateApiTs(recordTypes, domain);
+  files['src/atproto/session.ts'] = generateSessionManagerTs(recordTypes);
+
+  // Components
+  files['src/components/RecordList.ts'] = generateListViewTs(recordTypes, appConfig);
+  files['src/components/RecordDetail.ts'] = generateDetailViewTs(recordTypes, appConfig);
+  files['src/components/RecordForm.ts'] = generateFormViewTs(recordTypes, appConfig);
 
   // Lexicons
   recordTypes.forEach(record => {

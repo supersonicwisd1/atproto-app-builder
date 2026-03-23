@@ -13,10 +13,10 @@ export function generateNavigationTs(recordTypes: RecordType[], appConfig: AppCo
  * Navigation manager for handling view transitions
  */
 
-import Store from './Store';
-import { renderListView } from './views/ListView';
-import { renderDetailView } from './views/DetailView';
-import { renderFormView } from './views/FormView';
+import Store from './store';
+import { renderListView } from './components/RecordList';
+import { renderDetailView } from './components/RecordDetail';
+import { renderFormView } from './components/RecordForm';
 
 export class NavigationManager {
   constructor() {}
