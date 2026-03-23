@@ -23,6 +23,7 @@ import {
 import { renderDataPanel, wireDataPanel, resetDetailState } from './panels/DataPanel';
 import { renderBlocksPanel, wireBlocksPanel, updateBlocksSidebar } from './panels/BlocksPanel';
 import { renderViewsPanel, wireViewsPanel, updateViewsSidebar } from './panels/ViewsPanel';
+import { renderGeneratePanel, wireGeneratePanel, updateGenerateSidebar } from './panels/GeneratePanel';
 
 const SECTION_CONFIG: Record<
   SectionName,
@@ -35,6 +36,7 @@ const SECTION_CONFIG: Record<
   data: { title: 'Define Data', render: renderDataPanel },
   components: { title: 'Blocks', render: renderBlocksPanel },
   views: { title: 'Define Views', render: renderViewsPanel },
+  generate: { title: 'Generate', render: renderGeneratePanel },
 };
 
 const narrowQuery =
@@ -160,6 +162,9 @@ export function switchSection(section: SectionName): void {
   } else if (section === 'views') {
     wireViewsPanel();
     updateViewsSidebar();
+  } else if (section === 'generate') {
+    wireGeneratePanel();
+    updateGenerateSidebar();
   }
 
   // Always keep data sidebar in sync (RecordTypes may be seeded from requirements)
@@ -298,6 +303,24 @@ export function updateAccordionSummaries(): void {
       viewsSection.classList.add('has-items');
     } else {
       viewsSection.classList.remove('has-items');
+    }
+  }
+
+  // Generate
+  const genSection = document.querySelector(
+    '.accordion-section[data-section="generate"]',
+  );
+  if (genSection) {
+    const summary = genSection.querySelector('.accordion-summary');
+    if (summary) {
+      const appName = wizardState.appInfo.appName.trim();
+      summary.textContent = appName || 'Configure & generate';
+    }
+
+    if (wizardState.hasGenerated) {
+      genSection.classList.add('has-items');
+    } else {
+      genSection.classList.remove('has-items');
     }
   }
 }

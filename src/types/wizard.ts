@@ -86,7 +86,7 @@ export interface AppConfig {
   domain?: string;
 }
 
-export type SectionName = 'requirements' | 'data' | 'components' | 'views';
+export type SectionName = 'requirements' | 'data' | 'components' | 'views' | 'generate';
 
 export type RequirementType = 'know' | 'do' | 'navigate';
 
@@ -157,6 +157,7 @@ export interface WizardState {
   nonDataElements: NonDataElement[];
   blocks: Block[];
   views: View[];
+  hasGenerated: boolean;
 }
 
 export interface LoadedState {

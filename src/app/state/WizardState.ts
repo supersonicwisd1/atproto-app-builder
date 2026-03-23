@@ -43,7 +43,8 @@ export function initializeWizardState(): WizardState {
     requirements: [],
     nonDataElements: [],
     blocks: [],
-    views: [{ id: generateId(), name: 'Home', blockIds: [] }]
+    views: [{ id: generateId(), name: 'Home', blockIds: [] }],
+    hasGenerated: false
   };
 }
 
@@ -63,6 +64,10 @@ export function setWizardState(state: WizardState): void {
   // Migrate: ensure blocks array exists for old saved states
   if (!state.blocks) {
     state.blocks = [];
+  }
+  // Migrate: ensure hasGenerated exists for old saved states
+  if (state.hasGenerated === undefined) {
+    state.hasGenerated = false;
   }
   // Migrate: ensure views array exists with seeded Home view for old saved states
   if (!state.views || state.views.length === 0) {

@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 7: Generate Panel — App Identity, Review &amp; Export</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+  :root {
+    --bg-primary: #08080f;
+    --bg-surface: #14141f;
+    --bg-surface-2: #1a1a28;
+    --bg-elevated: #22222e;
+    --text-primary: #e8e8f0;
+    --text-secondary: #b0b0c0;
+    --text-muted: #8585a0;
+    --accent: #00e5ff;
+    --accent-hover: #44f0ff;
+    --accent-glow: rgba(0, 229, 255, 0.15);
+    --accent-red: #ff3355;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(0, 229, 255, 0.2);
+    --progress-muted: #2a2a3a;
+    --chip-bg: rgba(0, 229, 255, 0.12);
+    --chip-border: rgba(0, 229, 255, 0.3);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 1.5rem;
+    line-height: 1.5;
+    font-size: 0.9375rem;
+  }
+
+  .mockup-label {
+    text-align: center;
+    color: var(--accent);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+  }
+
+  .mockup-notes {
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .mockup-notes h3 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+  .mockup-notes ul {
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .mockup-notes li { margin-bottom: 0.25rem; }
+
+  .scene-label {
+    text-align: center;
+    color: var(--accent);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 2.5rem 0 1rem;
+    opacity: 0.5;
+  }
+
+  /* ===== Layout ===== */
+  .layout {
+    display: flex;
+    gap: 0;
+    min-height: 75vh;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg-surface-2);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-nav {
+    padding: 0.5rem 0;
+    position: relative;
+  }
+
+  .sidebar-nav::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: var(--progress-muted);
+    z-index: 0;
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 20px;
+    top: 24px;
+    width: 2px;
+    background: var(--accent);
+    z-index: 1;
+    transition: height 0.4s ease;
+  }
+
+  .sidebar-section {
+    position: relative;
+    z-index: 2;
+  }
+
+  .sidebar-header {
+    padding: 0.625rem 0.875rem 0.625rem 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .sidebar-header:hover { background: var(--bg-elevated); }
+  .sidebar-section.active .sidebar-header {
+    background: var(--accent-glow);
+  }
+
+  .sidebar-header::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--progress-muted);
+    background: var(--bg-surface-2);
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    z-index: 3;
+  }
+
+  .sidebar-section.has-items .sidebar-header::before {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .sidebar-section.active .sidebar-header::before {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 8px var(--accent-glow);
+  }
+  .sidebar-section.active.has-items .sidebar-header::before {
+    background: var(--accent);
+  }
+  .sidebar-section.active:not(.has-items) .sidebar-header::before {
+    background: var(--bg-surface-2);
+  }
+
+  .sidebar-header h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sidebar-section.active .sidebar-header h4 {
+    color: var(--accent);
+  }
+
+  .sidebar-header .badge {
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.625rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .sidebar-section:not(.has-items) .sidebar-header .badge {
+    background: var(--progress-muted);
+    color: var(--text-muted);
+  }
+
+  .sidebar-items {
+    padding: 0 0.625rem 0.5rem 2.75rem;
+  }
+
+  .sidebar-item {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: background 0.1s;
+  }
+  .sidebar-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+  }
+  .sidebar-item .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  .sidebar-item-empty {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.5;
+  }
+
+  .step-number {
+    font-size: 0.5625rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.875rem 0 2.75rem;
+    opacity: 0.6;
+  }
+
+  /* ===== Workspace ===== */
+  .workspace {
+    flex: 1;
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .workspace-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .workspace-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .workspace-body {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .workspace-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+    max-width: 65ch;
+  }
+
+  /* ===== Form groups (from views mockup) ===== */
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+  .form-group:last-child { margin-bottom: 0; }
+
+  .form-group label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3125rem;
+  }
+
+  .form-group input[type="text"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-group input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .form-group textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    outline: none;
+    resize: vertical;
+    min-height: 3.5rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .form-hint {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .required {
+    color: var(--accent-red);
+  }
+
+  /* ===== Generate panel sections ===== */
+  .generate-section {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .generate-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .generate-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== Review section ===== */
+  .generate-review {
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .generate-review-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.8125rem;
+  }
+  .generate-review-item:last-child {
+    border-bottom: none;
+  }
+
+  .generate-review-label {
+    color: var(--text-muted);
+    min-width: 8rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+  }
+
+  .generate-review-value {
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  /* Collapsible details inside review */
+  .generate-review-item details {
+    width: 100%;
+  }
+  .generate-review-item details summary {
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    user-select: none;
+    list-style: none;
+  }
+  .generate-review-item details summary::-webkit-details-marker {
+    display: none;
+  }
+  .generate-review-item details summary::before {
+    content: '\25B6';
+    display: inline-block;
+    font-size: 0.5625rem;
+    margin-right: 0.375rem;
+    transition: transform 0.15s ease;
+  }
+  .generate-review-item details[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .generate-review-item details .review-detail-content {
+    margin-top: 0.5rem;
+    padding-left: 0.875rem;
+  }
+
+  .generate-review-item details .nsid-label {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .wizard-code {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 0.625rem 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin-top: 0.375rem;
+  }
+
+  /* ===== Generate button ===== */
+  .generate-btn-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .generate-btn {
+    padding: 0.5625rem 1.5rem;
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .generate-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 12px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  .generate-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .generate-btn:disabled:hover {
+    background: var(--accent);
+    box-shadow: none;
+  }
+
+  /* ===== Buttons (from views mockup) ===== */
+  .btn-primary {
+    padding: 0.4375rem 1rem;
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ===== Responsive: Narrow accordion ===== */
+  .accordion { display: none; }
+
+  @media (max-width: 767px) {
+    .layout { display: none; }
+    .accordion { display: block; }
+
+    .accordion-container {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      min-height: 75vh;
+    }
+
+    .accordion-section { border-bottom: 1px solid var(--border-subtle); }
+    .accordion-section:last-child { border-bottom: none; }
+
+    .accordion-header {
+      padding: 0.875rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: var(--bg-surface-2);
+      transition: background 0.15s;
+    }
+    .accordion-header:hover { background: var(--bg-elevated); }
+    .accordion-section.active .accordion-header {
+      background: var(--accent-glow);
+    }
+
+    .accordion-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+    }
+
+    .accordion-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--progress-muted);
+      flex-shrink: 0;
+    }
+    .accordion-section.has-items .accordion-dot {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .accordion-section.active .accordion-dot {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .accordion-header h4 {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .accordion-section.active .accordion-header h4 {
+      color: var(--accent);
+    }
+
+    .accordion-badge {
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-size: 0.625rem;
+      padding: 0.0625rem 0.375rem;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    .accordion-chevron {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      transition: transform 0.2s;
+    }
+    .accordion-section.active .accordion-chevron {
+      transform: rotate(180deg);
+    }
+
+    .accordion-summary {
+      padding: 0 1rem 0.5rem 2.25rem;
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      background: var(--bg-surface-2);
+    }
+    .accordion-section.active .accordion-summary { display: none; }
+
+    .accordion-body {
+      display: none;
+      padding: 1rem;
+      background: var(--bg-surface);
+    }
+    .accordion-section.active .accordion-body { display: block; }
+
+    /* Form adjustments for narrow */
+    .form-group input[type="text"] { max-width: 100%; }
+    .form-group textarea { max-width: 100%; }
+  }
+
+  /* ===== Scene separator ===== */
+  .scene-divider {
+    border: none;
+    border-top: 1px dashed var(--border-subtle);
+    margin: 2rem 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">Mockup 7: Generate Panel — App Identity, Review &amp; Export</div>
+
+<div class="mockup-notes">
+  <h3>What this mockup shows</h3>
+  <ul>
+    <li><strong>Scene A:</strong> Generate panel fully configured — form fields filled, review shows record types with lexicon preview, Download ZIP button enabled</li>
+    <li><strong>Scene B:</strong> Empty state — no app identity entered, NSID shows placeholder, button disabled</li>
+    <li><strong>Scene C:</strong> After generation — progress dot filled, indicating the user has completed this step</li>
+    <li><strong>Scene D:</strong> Narrow accordion layout</li>
+  </ul>
+</div>
+
+
+<!-- =============================================
+     SCENE A: Generate panel — fully configured, ready to download
+     ============================================= -->
+<div class="scene-label">Scene A — Generate panel fully configured, ready to download</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-nav">
+      <div class="progress-fill" style="height: 100%;"></div>
+
+      <div class="step-number">Step 1</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Requirements</h4>
+          <span class="badge">6</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 2</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Data</h4>
+          <span class="badge">1</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 3</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Blocks</h4>
+          <span class="badge">4</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> About Section</div>
+          <div class="sidebar-item"><span class="dot"></span> Post Feed</div>
+          <div class="sidebar-item"><span class="dot"></span> Nav Menu</div>
+          <div class="sidebar-item"><span class="dot"></span> Timer Widget</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 4</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Views</h4>
+          <span class="badge">2</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> Home</div>
+          <div class="sidebar-item"><span class="dot"></span> Profile</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 5</div>
+      <div class="sidebar-section active">
+        <div class="sidebar-header">
+          <h4>Generate</h4>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> My Social App</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    <div class="workspace-header">
+      <h2>Generate App</h2>
+    </div>
+
+    <div class="workspace-body">
+
+      <!-- Section: App Identity -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">App Identity</h3>
+
+        <div class="form-group">
+          <label>App Name <span class="required">*</span></label>
+          <input type="text" value="My Social App">
+          <div class="form-hint">Used in package.json, page title, and ZIP filename.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Domain <span class="required">*</span></label>
+          <input type="text" value="example.com">
+          <div class="form-hint">Used for lexicon NSID generation (e.g., com.example.myRecord).</div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea>A social app for sharing posts</textarea>
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" value="Jane Developer">
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+      </div>
+
+      <!-- Section: Review -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Review</h3>
+
+        <div class="generate-review">
+          <div class="generate-review-item">
+            <span class="generate-review-label">Record Types</span>
+            <details>
+              <summary>1 record type</summary>
+              <div class="review-detail-content">
+                <div class="nsid-label">com.example.post</div>
+                <pre class="wizard-code">{
+  "lexicon": 1,
+  "id": "com.example.post",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}</pre>
+              </div>
+            </details>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Views</span>
+            <span class="generate-review-value">2 &mdash; Home, Profile</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Blocks</span>
+            <span class="generate-review-value">4</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Requirements</span>
+            <span class="generate-review-value">6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Export -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Export</h3>
+
+        <div class="generate-btn-wrapper">
+          <button class="generate-btn">Download ZIP</button>
+          <div class="form-hint">Generates a complete AT Protocol app ready to run with <code style="background: var(--bg-primary); padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 0.6875rem;">npm install &amp;&amp; npm run dev</code>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================================
+     SCENE B: Generate panel — empty state, button disabled
+     ============================================= -->
+<div class="scene-label">Scene B — Empty state, NSID placeholder, button disabled</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-nav">
+      <div class="progress-fill" style="height: 100%;"></div>
+
+      <div class="step-number">Step 1</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Requirements</h4>
+          <span class="badge">6</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 2</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Data</h4>
+          <span class="badge">1</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 3</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Blocks</h4>
+          <span class="badge">4</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> About Section</div>
+          <div class="sidebar-item"><span class="dot"></span> Post Feed</div>
+          <div class="sidebar-item"><span class="dot"></span> Nav Menu</div>
+          <div class="sidebar-item"><span class="dot"></span> Timer Widget</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 4</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Views</h4>
+          <span class="badge">2</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> Home</div>
+          <div class="sidebar-item"><span class="dot"></span> Profile</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 5</div>
+      <div class="sidebar-section active">
+        <div class="sidebar-header">
+          <h4>Generate</h4>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item-empty">Configure &amp; generate</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    <div class="workspace-header">
+      <h2>Generate App</h2>
+    </div>
+
+    <div class="workspace-body">
+
+      <!-- Section: App Identity -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">App Identity</h3>
+
+        <div class="form-group">
+          <label>App Name <span class="required">*</span></label>
+          <input type="text" placeholder="e.g., My Social App">
+          <div class="form-hint">Used in package.json, page title, and ZIP filename.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Domain <span class="required">*</span></label>
+          <input type="text" placeholder="e.g., example.com">
+          <div class="form-hint">Used for lexicon NSID generation (e.g., com.example.myRecord).</div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea placeholder="A short description of your app"></textarea>
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" placeholder="e.g., Jane Developer">
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+      </div>
+
+      <!-- Section: Review -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Review</h3>
+
+        <div class="generate-review">
+          <div class="generate-review-item">
+            <span class="generate-review-label">Record Types</span>
+            <details>
+              <summary>1 record type</summary>
+              <div class="review-detail-content">
+                <div class="nsid-label">[domain].post</div>
+                <pre class="wizard-code">{
+  "lexicon": 1,
+  "id": "[domain].post",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}</pre>
+              </div>
+            </details>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Views</span>
+            <span class="generate-review-value">2 &mdash; Home, Profile</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Blocks</span>
+            <span class="generate-review-value">4</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Requirements</span>
+            <span class="generate-review-value">6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Export -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Export</h3>
+
+        <div class="generate-btn-wrapper">
+          <button class="generate-btn" disabled>Download ZIP</button>
+          <div class="form-hint">Generates a complete AT Protocol app ready to run with <code style="background: var(--bg-primary); padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 0.6875rem;">npm install &amp;&amp; npm run dev</code>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================================
+     SCENE C: Generate panel — after successful generation
+     ============================================= -->
+<div class="scene-label">Scene C — After generation, progress dot filled (all 5 steps complete)</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-nav">
+      <div class="progress-fill" style="height: 100%;"></div>
+
+      <div class="step-number">Step 1</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Requirements</h4>
+          <span class="badge">6</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 2</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Data</h4>
+          <span class="badge">1</span>
+        </div>
+      </div>
+
+      <div class="step-number">Step 3</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Blocks</h4>
+          <span class="badge">4</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> About Section</div>
+          <div class="sidebar-item"><span class="dot"></span> Post Feed</div>
+          <div class="sidebar-item"><span class="dot"></span> Nav Menu</div>
+          <div class="sidebar-item"><span class="dot"></span> Timer Widget</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 4</div>
+      <div class="sidebar-section has-items">
+        <div class="sidebar-header">
+          <h4>Views</h4>
+          <span class="badge">2</span>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> Home</div>
+          <div class="sidebar-item"><span class="dot"></span> Profile</div>
+        </div>
+      </div>
+
+      <div class="step-number">Step 5</div>
+      <div class="sidebar-section active has-items">
+        <div class="sidebar-header">
+          <h4>Generate</h4>
+        </div>
+        <div class="sidebar-items">
+          <div class="sidebar-item"><span class="dot"></span> My Social App</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    <div class="workspace-header">
+      <h2>Generate App</h2>
+    </div>
+
+    <div class="workspace-body">
+
+      <!-- Section: App Identity -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">App Identity</h3>
+
+        <div class="form-group">
+          <label>App Name <span class="required">*</span></label>
+          <input type="text" value="My Social App">
+          <div class="form-hint">Used in package.json, page title, and ZIP filename.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Domain <span class="required">*</span></label>
+          <input type="text" value="example.com">
+          <div class="form-hint">Used for lexicon NSID generation (e.g., com.example.myRecord).</div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea>A social app for sharing posts</textarea>
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" value="Jane Developer">
+          <div class="form-hint">Appears in package.json and README.</div>
+        </div>
+      </div>
+
+      <!-- Section: Review -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Review</h3>
+
+        <div class="generate-review">
+          <div class="generate-review-item">
+            <span class="generate-review-label">Record Types</span>
+            <details>
+              <summary>1 record type</summary>
+              <div class="review-detail-content">
+                <div class="nsid-label">com.example.post</div>
+                <pre class="wizard-code">{
+  "lexicon": 1,
+  "id": "com.example.post",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}</pre>
+              </div>
+            </details>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Views</span>
+            <span class="generate-review-value">2 &mdash; Home, Profile</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Blocks</span>
+            <span class="generate-review-value">4</span>
+          </div>
+
+          <div class="generate-review-item">
+            <span class="generate-review-label">Requirements</span>
+            <span class="generate-review-value">6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Export -->
+      <div class="generate-section">
+        <h3 class="generate-section-title">Export</h3>
+
+        <div class="generate-btn-wrapper">
+          <button class="generate-btn">Download ZIP</button>
+          <div class="form-hint">Generates a complete AT Protocol app ready to run with <code style="background: var(--bg-primary); padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 0.6875rem;">npm install &amp;&amp; npm run dev</code>.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================================
+     SCENE D: Narrow accordion view
+     ============================================= -->
+<div class="scene-label">Scene D — Narrow accordion layout (max-width: 420px)</div>
+
+<div class="accordion" style="display: block; max-width: 420px; margin: 0 auto;">
+  <div class="accordion-container">
+    <div class="accordion-section has-items">
+      <div class="accordion-header">
+        <div class="accordion-header-left">
+          <span class="accordion-dot"></span>
+          <h4>Requirements</h4>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="accordion-badge">6</span>
+          <span class="accordion-chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="accordion-summary">App description &middot; create Post &middot; +4 more</div>
+    </div>
+
+    <div class="accordion-section has-items">
+      <div class="accordion-header">
+        <div class="accordion-header-left">
+          <span class="accordion-dot"></span>
+          <h4>Data</h4>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="accordion-badge">1</span>
+          <span class="accordion-chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="accordion-summary">Post</div>
+    </div>
+
+    <div class="accordion-section has-items">
+      <div class="accordion-header">
+        <div class="accordion-header-left">
+          <span class="accordion-dot"></span>
+          <h4>Blocks</h4>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="accordion-badge">4</span>
+          <span class="accordion-chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="accordion-summary">About Section &middot; Post Feed &middot; Nav Menu &middot; Timer Widget</div>
+    </div>
+
+    <div class="accordion-section has-items">
+      <div class="accordion-header">
+        <div class="accordion-header-left">
+          <span class="accordion-dot"></span>
+          <h4>Views</h4>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="accordion-badge">2</span>
+          <span class="accordion-chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="accordion-summary">Home &middot; Profile</div>
+    </div>
+
+    <div class="accordion-section active has-items">
+      <div class="accordion-header">
+        <div class="accordion-header-left">
+          <span class="accordion-dot"></span>
+          <h4>Generate</h4>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="accordion-chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="accordion-body" style="display: block;">
+
+        <!-- Section: App Identity -->
+        <div class="generate-section">
+          <h3 class="generate-section-title">App Identity</h3>
+
+          <div class="form-group">
+            <label>App Name <span class="required">*</span></label>
+            <input type="text" value="My Social App" style="max-width: 100%;">
+            <div class="form-hint">Used in package.json, page title, and ZIP filename.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Domain <span class="required">*</span></label>
+            <input type="text" value="example.com" style="max-width: 100%;">
+            <div class="form-hint">Used for lexicon NSID generation (e.g., com.example.myRecord).</div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea style="max-width: 100%;">A social app for sharing posts</textarea>
+            <div class="form-hint">Appears in package.json and README.</div>
+          </div>
+
+          <div class="form-group">
+            <label>Author</label>
+            <input type="text" value="Jane Developer" style="max-width: 100%;">
+            <div class="form-hint">Appears in package.json and README.</div>
+          </div>
+        </div>
+
+        <!-- Section: Review -->
+        <div class="generate-section">
+          <h3 class="generate-section-title">Review</h3>
+
+          <div class="generate-review">
+            <div class="generate-review-item">
+              <span class="generate-review-label">Record Types</span>
+              <details>
+                <summary>1 record type</summary>
+                <div class="review-detail-content">
+                  <div class="nsid-label">com.example.post</div>
+                  <pre class="wizard-code">{
+  "lexicon": 1,
+  "id": "com.example.post",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}</pre>
+                </div>
+              </details>
+            </div>
+
+            <div class="generate-review-item">
+              <span class="generate-review-label">Views</span>
+              <span class="generate-review-value">2 &mdash; Home, Profile</span>
+            </div>
+
+            <div class="generate-review-item">
+              <span class="generate-review-label">Blocks</span>
+              <span class="generate-review-value">4</span>
+            </div>
+
+            <div class="generate-review-item">
+              <span class="generate-review-label">Requirements</span>
+              <span class="generate-review-value">6</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Export -->
+        <div class="generate-section">
+          <h3 class="generate-section-title">Export</h3>
+
+          <div class="generate-btn-wrapper">
+            <button class="generate-btn">Download ZIP</button>
+            <div class="form-hint">Generates a complete AT Protocol app ready to run with <code style="background: var(--bg-primary); padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 0.6875rem;">npm install &amp;&amp; npm run dev</code>.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

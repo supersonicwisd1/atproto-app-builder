@@ -1,0 +1,168 @@
+@layer components {
+  /* ===== GENERATE PANEL SECTIONS ===== */
+
+  .generate-section {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .generate-section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .generate-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem;
+  }
+
+  /* ===== FORM INPUTS ===== */
+
+  .generate-section input[type="text"],
+  .generate-section textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 0.625rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .generate-section input[type="text"]:focus,
+  .generate-section textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .generate-section textarea {
+    resize: vertical;
+    min-height: 3.5rem;
+  }
+
+  /* ===== REVIEW SECTION ===== */
+
+  .generate-review {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .generate-review-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    font-size: 0.8125rem;
+  }
+
+  .generate-review-label {
+    flex-shrink: 0;
+    width: 110px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  .generate-review-value {
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  /* Lexicon preview details */
+
+  .generate-review details {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .generate-review summary {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.25rem 0;
+    user-select: none;
+  }
+
+  .generate-review summary:hover {
+    color: var(--accent);
+  }
+
+  .generate-review pre.wizard-code {
+    margin-top: 0.375rem;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+  }
+
+  /* ===== WARNING ===== */
+
+  .generate-warning {
+    margin-top: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--warning, #f5a623);
+    background: rgba(245, 166, 35, 0.08);
+    border: 1px solid rgba(245, 166, 35, 0.2);
+    border-radius: 4px;
+  }
+
+  /* ===== EXPORT SECTION ===== */
+
+  .generate-btn-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .generate-btn {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: none;
+    padding: 0.625rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      opacity 0.15s,
+      background 0.15s;
+  }
+
+  .generate-btn:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  .generate-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ===== RESPONSIVE ===== */
+
+  @media (max-width: 767px) {
+    .generate-review-item {
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .generate-review-label {
+      width: auto;
+    }
+  }
+}

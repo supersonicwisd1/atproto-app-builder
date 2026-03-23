@@ -11,7 +11,7 @@
 
 import { getWizardState, saveWizardState } from '../../state/WizardState';
 import { generateId } from '../../../utils/id';
-import { updateAccordionSummaries, isNarrowViewport } from '../WorkspaceLayout';
+import { updateAccordionSummaries, isNarrowViewport, switchSection } from '../WorkspaceLayout';
 import type { View, Block } from '../../../types/wizard';
 
 // ── Module-level state ────────────────────────────────────────────────
@@ -68,7 +68,17 @@ export function renderViewsPanel(): string {
     ? renderUnassignedSection(unassigned)
     : '';
 
-  return desc + addBtn + formHtml + gridHtml + unassignedHtml;
+  const nextStepHtml = `<div class="next-step">
+  <div class="next-step-card" id="views-next-step" data-section="generate">
+    <div>
+      <div class="next-step-label">Final step</div>
+      <div class="next-step-title">Generate your app</div>
+    </div>
+    <div class="next-step-arrow">&rarr;</div>
+  </div>
+</div>`;
+
+  return desc + addBtn + formHtml + gridHtml + unassignedHtml + nextStepHtml;
 }
 
 function renderViewCard(view: View, totalViews: number): string {
@@ -215,6 +225,12 @@ export function wireViewsPanel(): void {
   // View card actions (delegation on grid)
   const grid = document.getElementById('views-grid');
   grid?.addEventListener('click', handleGridClick);
+
+  // Next-step card → Generate
+  const nextStep = document.getElementById('views-next-step');
+  nextStep?.addEventListener('click', () => {
+    switchSection('generate');
+  });
 }
 
 function handleGridClick(e: Event): void {

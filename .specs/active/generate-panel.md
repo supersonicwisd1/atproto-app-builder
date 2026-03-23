@@ -1,8 +1,9 @@
 # Spec: Generate Panel
 
-**Status:** draft
+**Status:** ready
 **Date:** 2026-03-23
 **Depends on:** Views Panel (Phase 5)
+**Visual reference:** `mockups/7-generate-panel.html`
 
 ## What
 
@@ -30,7 +31,9 @@ In `src/types/wizard.ts`, add `'generate'` to the union:
 export type SectionName = 'requirements' | 'data' | 'components' | 'views' | 'generate';
 ```
 
-No new types or WizardState fields needed — the panel writes to existing `appInfo` fields.
+Add `hasGenerated: boolean` to `WizardState` (default `false`). Set to `true` after the ZIP file is successfully created (before the browser download is triggered). Used by the sidebar progress dot.
+
+The panel also writes to existing `appInfo` fields.
 
 ## UI Structure
 
@@ -49,7 +52,7 @@ The Generate panel follows the same `render*Panel()` / `wire*Panel()` / `update*
 
 ### Section A: App Info
 
-Form fields that persist to `wizardState.appInfo` on every `input` event:
+Form fields that persist to `wizardState.appInfo` on every `input` event. A debounced (300ms) callback on all input fields updates both the review section and the sidebar, so NSID previews and the app name display stay in sync without per-keystroke DOM churn.
 
 ```html
 <div class="generate-section">
@@ -126,7 +129,7 @@ Read-only summary showing what will be generated. Uses a definition-list style l
 </details>
 ```
 
-The NSID is computed using `computeRecordTypeNsid(record, domain)` from `src/generator/Lexicon.ts`. The domain value comes from the domain input field's current value (read from state).
+The NSID is computed using `computeRecordTypeNsid(record, domain)` from `src/generator/Lexicon.ts`. The domain value comes from the domain input field's current value (read from state). When the domain is empty and the record type has no explicit namespace config, display a placeholder NSID like `[domain].post` instead of the bare name — this communicates the expected pattern and prompts the user to fill in the domain field.
 
 ### Section C: Export
 
@@ -150,9 +153,12 @@ The NSID is computed using `computeRecordTypeNsid(record, domain)` from `src/gen
 - Updates in real-time as the user types.
 
 **Button click behavior:**
-1. Hardcodes `wizardState.appConfig.outputMethod = 'zip'`.
-2. Calls the existing `generateApp()` from `src/app/export/OutputGenerator.ts`.
-3. The ZIP downloads via the browser (existing `ZipExporter.ts` flow).
+1. Immediately disables the button and changes text to "Generating...".
+2. Hardcodes `wizardState.appConfig.outputMethod = 'zip'`.
+3. Calls the existing `generateApp()` from `src/app/export/OutputGenerator.ts` (async).
+4. On success: sets `wizardState.hasGenerated = true`, saves state, updates sidebar (progress dot fills), re-enables button with original "Download ZIP" text.
+5. On failure: re-enables button with original text. The existing ZipExporter error handling applies.
+6. The ZIP downloads via the browser (existing `ZipExporter.ts` flow).
 
 ### Sidebar integration
 
@@ -166,9 +172,9 @@ The sidebar Generate section shows readiness status:
 <div class="sidebar-item"><span class="dot"></span> [App Name]</div>
 ```
 
-Badge: shows nothing meaningful (could show "1" when ready, or omit). Use empty string or "—" when not configured.
+Badge: hidden (no badge content for this section — the other four sections use counts, but Generate has nothing to count).
 
-`has-items` class: set when `appInfo.appName.trim()` is non-empty (indicates the user has engaged with this section).
+`has-items` class: set when `wizardState.hasGenerated` is `true` (the user has successfully generated). The four previous sections' filled dots indicate readiness; the Generate dot filling indicates completion.
 
 ### Accordion integration
 
@@ -192,7 +198,7 @@ Add a next-step card at the bottom of `renderViewsPanel()`:
 </div>
 ```
 
-Clicking it calls `switchSection('generate')` (already imported in ViewsPanel).
+Clicking it calls `switchSection('generate')` (needs to be added to the existing WorkspaceLayout import in ViewsPanel).
 
 ## Acceptance Criteria
 
@@ -218,10 +224,11 @@ Clicking it calls `switchSection('generate')` (already imported in ViewsPanel).
   - Clicking the enabled button calls `generateApp()` which produces a ZIP download via the existing `ZipExporter.ts` flow.
   - The `outputMethod` is hardcoded to `'zip'` (no GitHub option in this phase).
 
-- [ ] The sidebar updates to reflect generate readiness
+- [ ] The sidebar updates to reflect generate state
   - When `appInfo.appName` is empty, the sidebar items area shows "Configure & generate".
   - When `appInfo.appName` is non-empty, the sidebar shows the app name as an item.
-  - The `has-items` class (filled progress dot) is set when `appInfo.appName` is non-empty.
+  - No badge is shown (hidden or empty).
+  - The `has-items` class (filled progress dot) is set only when `wizardState.hasGenerated` is `true` — i.e., the user has successfully generated at least once.
 
 - [ ] The Views panel includes a next-step card pointing to Generate
   - A "Final step: Generate your app" card appears at the bottom of the Views panel.
