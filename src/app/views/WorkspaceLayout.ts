@@ -197,7 +197,20 @@ export function updateAccordionSummaries(): void {
         const texts = wizardState.requirements.map((r) => {
           if (r.type === 'know') return r.text ?? '';
           if (r.type === 'do') return `${r.verb ?? ''} ${r.data ?? ''}`.trim();
-          return `${r.fromView ?? '?'} → ${r.toView ?? '?'}`;
+          if (r.navType === 'menu') {
+            const label = r.menuLabel || 'menu';
+            return r.menuIncludeAllViews !== false
+              ? `${label}: all views`
+              : label;
+          }
+          if (r.navType === 'forward-back') return 'fwd/back';
+          const fromName = r.fromView
+            ? wizardState.views.find((v) => v.id === r.fromView)?.name ?? '?'
+            : '?';
+          const toName = r.toView
+            ? wizardState.views.find((v) => v.id === r.toView)?.name ?? '?'
+            : '?';
+          return `${fromName} → ${toName}`;
         });
         summary.textContent = texts.join(' · ');
       }

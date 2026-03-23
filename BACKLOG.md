@@ -12,9 +12,9 @@ Pick one item from "Up Next" before starting a coding session.
 - [x] Phase 0: Preparation — delete orphans, add sidebar HTML/CSS
 - [x] Phase 1: Scaffold sidebar + workspace layout
 - [x] Phase 2: Data Panel (read-only cards) — see `.specs/done/data-panel-cards.md`
-- [x] Phase 3: Requirements Panel + delete Step 1 — see `.specs/active/requirements-panel.md`
-- [x] Phase 4: Blocks Panel — see `.specs/active/blocks-panel.md`
-- [x] Phase 5: Views Panel — see `.specs/active/views-panel.md`
+- [x] Phase 3: Requirements Panel + delete Step 1 — see `.specs/done/requirements-panel.md`
+- [x] Phase 4: Blocks Panel — see `.specs/done/blocks-panel.md`
+- [x] Phase 5: Views Panel — see `.specs/done/views-panel.md`
 - [ ] Phase 6: Generate Flow (also: add next-step card to Views panel pointing to generate)
 - [ ] Phase 7: Navigation and History Rework
 - [ ] Phase 8: Cleanup (delete deprecated files, remove old CSS)
@@ -24,20 +24,15 @@ Pick one item from "Up Next" before starting a coding session.
 
 <!-- Prioritized list — work top to bottom -->
 
-### Data Type Specs (sequential — identity first, then fields)
-
-- [x] Data type identity — lexicon config & discovery — see `.specs/active/data-type-identity.md`
-- [x] Data type fields — see `.specs/done/data-type-fields.md`
-
 ### Independent (no blockers)
 
+- [ ] Remove no-views dead code from navigate forms — see `.specs/active/remove-no-views-dead-code.md`
 - [ ] Clean up unused assets (fonts, SVG filters) — see `.specs/active/cleanup-unused-assets.md`
 - [ ] Add Vitest unit tests for generator output — see `.specs/active/001-example-add-tests-for-generators.md`
 - [ ] Add Vitest unit tests for utility functions (text, id, html, nsid)
 
 ### Post-Views Panel (depends on Phase 5)
 
-- [ ] Requirements navigation wiring — see `.specs/active/requirements-navigation-wiring.md`
 - [ ] App config placement — see `.specs/active/app-config-placement.md`
 
 ### Post-Migration Features
@@ -56,6 +51,10 @@ Pick one item from "Up Next" before starting a coding session.
 
 <!-- Move completed items here with date -->
 
+- [x] Navigation subtypes — see `.specs/done/navigation-subtypes.md` 3/17/26
+- [x] Data type identity — lexicon config & discovery — see `.specs/done/data-type-identity.md` 3/20/26
+- [x] Data type fields — see `.specs/done/data-type-fields.md` 3/20/26
+- [x] Requirements navigation wiring — see `.specs/done/requirements-navigation-wiring.md` 3/23/26
 - [x] Non-data interactive elements — see `.specs/done/non-data-elements.md` 3/21/26
 - [x] Data modeling guidance — see `.specs/done/data-modeling-guidance.md` 3/21/26
 - [x] Requirements data type combobox & seeding — see `.specs/done/requirements-data-type-combobox.md` 3/19/26

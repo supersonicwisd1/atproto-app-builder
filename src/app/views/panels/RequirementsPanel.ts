@@ -25,6 +25,8 @@ import type {
   NonDataElement,
   InteractionTarget,
   NavType,
+  NavControlType,
+  View,
 } from '../../../types/wizard';
 
 const MAX_REQUIREMENTS = 100;
@@ -166,13 +168,7 @@ function renderHeaderRight(
   if (type === 'do') {
     return renderDoTargetDropdown(existing);
   }
-  const relatedView = existing?.relatedView ?? '';
-  return `
-    <label>Related View</label>
-    <select id="req-related-view" disabled>
-      <option value=""${!relatedView ? ' selected' : ''}>&mdash; none &mdash;</option>
-    </select>
-  `;
+  return '';
 }
 
 function renderDoTargetDropdown(existing?: Requirement): string {
@@ -191,9 +187,6 @@ function renderDoTargetDropdown(existing?: Requirement): string {
 
 function renderNavTypeDropdown(existing?: Requirement): string {
   const { requirements } = getWizardState();
-  const hasMenu = requirements.some(
-    (r) => r.type === 'navigate' && r.navType === 'menu' && r.id !== editingId,
-  );
   const hasForwardBack = requirements.some(
     (r) =>
       r.type === 'navigate' &&
@@ -207,7 +200,7 @@ function renderNavTypeDropdown(existing?: Requirement): string {
     <label>Type of Navigation</label>
     <select id="req-nav-type-select">
       <option value="direct"${navType === 'direct' ? ' selected' : ''}>Direct Link</option>
-      <option value="menu"${navType === 'menu' ? ' selected' : ''}${hasMenu ? ' disabled' : ''}>Navigation Menu</option>
+      <option value="menu"${navType === 'menu' ? ' selected' : ''}>Navigation Menu</option>
       <option value="forward-back"${navType === 'forward-back' ? ' selected' : ''}${hasForwardBack ? ' disabled' : ''}>Forward/Back Buttons/Arrows</option>
     </select>
   `;
@@ -342,52 +335,190 @@ function renderNavSubtypeFields(
   navType: NavType,
   existing?: Requirement,
 ): string {
+  const { views } = getWizardState();
+  const hasViews = views.length > 0;
+
   if (navType === 'direct') {
+    return renderDirectLinkFields(views, hasViews, existing);
+  }
+  if (navType === 'menu') {
+    return renderMenuFields(views, hasViews, existing);
+  }
+  // forward-back
+  return renderForwardBackFields(views, hasViews, existing);
+}
+
+function renderDirectLinkFields(
+  views: View[],
+  hasViews: boolean,
+  existing?: Requirement,
+): string {
+  if (!hasViews) {
     return `
+      <div class="form-hint nav-no-views-hint">Create some views first to set up direct links.</div>
       <div class="form-row">
         <div class="form-group">
           <label>From View</label>
           <select id="req-nav-from" disabled>
-            <option disabled selected>Create some views first</option>
+            <option disabled selected>No views yet</option>
           </select>
         </div>
         <div class="form-group">
           <label>To View</label>
           <select id="req-nav-to" disabled>
-            <option disabled selected>Create some views first</option>
+            <option disabled selected>No views yet</option>
           </select>
         </div>
       </div>
     `;
   }
 
-  if (navType === 'menu') {
-    return `
-      <p class="form-note">By default, every view gets a navigation menu linking to all other views. You can customize it or delete it below.</p>
+  const fromView = existing?.fromView ?? '';
+  const toView = existing?.toView ?? '';
+  const viewOptions = (selected: string) =>
+    views
+      .map(
+        (v) =>
+          `<option value="${v.id}"${v.id === selected ? ' selected' : ''}>${escapeHtml(v.name)}</option>`,
+      )
+      .join('');
+
+  return `
+    <div class="form-row">
       <div class="form-group">
-        <label>Menu Items</label>
-        <div class="checkbox-list-placeholder">Add some views first</div>
+        <label>From View</label>
+        <select id="req-nav-from">
+          <option value=""${!fromView ? ' selected' : ''}>Select a view</option>
+          ${viewOptions(fromView)}
+        </select>
       </div>
       <div class="form-group">
-        <label>Show Menu On</label>
-        <div class="checkbox-list-placeholder">Add some views first</div>
+        <label>To View</label>
+        <select id="req-nav-to">
+          <option value=""${!toView ? ' selected' : ''}>Select a view</option>
+          ${viewOptions(toView)}
+        </select>
+      </div>
+    </div>
+  `;
+}
+
+function renderMenuFields(
+  views: View[],
+  hasViews: boolean,
+  existing?: Requirement,
+): string {
+  if (!hasViews) {
+    return `
+      <div class="form-hint nav-no-views-hint">Create some views first to set up a navigation menu.</div>
+      <div class="form-group">
+        <label>Menu Items</label>
+        <div class="checkbox-list-placeholder">No views yet</div>
       </div>
     `;
   }
 
-  // forward-back
+  const label = existing?.menuLabel ?? '';
+  const includeAll = existing?.menuIncludeAllViews !== false; // default true
+  const checkedAttr = includeAll ? ' checked' : '';
+
+  // Menu items: when manual, which views are checked
+  const manualItems = new Set(existing?.menuItems ?? []);
+  // When switching from "include all" to manual, all views start checked
+  const allCheckedForManual = includeAll || manualItems.size === 0;
+
+  const menuItemsCheckboxes = views
+    .map((v) => {
+      const checked = allCheckedForManual || manualItems.has(v.id) ? ' checked' : '';
+      return `<label class="checkbox-item"><input type="checkbox" value="${v.id}" class="menu-item-cb"${checked}> ${escapeHtml(v.name)}</label>`;
+    })
+    .join('');
+
+  // Preview of current views for "include all" mode
+  const previewText = views.map((v) => v.name).join(', ');
+
+  return `
+    <div class="form-group">
+      <label>Menu Name</label>
+      <input id="req-menu-label" placeholder="e.g., Main Nav, Footer Links" value="${escapeAttr(label)}">
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="menu-include-all-views"${checkedAttr}>
+        Include all views
+      </label>
+      <div class="form-hint">
+        Menu items will automatically update when views are added, removed, or renamed.
+      </div>
+    </div>
+    <div class="form-group" id="menu-items-preview"${!includeAll ? ' style="display:none"' : ''}>
+      <label>Menu Items</label>
+      <div class="nav-view-preview">Currently: ${escapeHtml(previewText)}</div>
+    </div>
+    <div class="form-group" id="menu-items-manual"${includeAll ? ' style="display:none"' : ''}>
+      <label>Menu Items</label>
+      <div class="checkbox-list">
+        ${menuItemsCheckboxes}
+      </div>
+    </div>
+  `;
+}
+
+function renderForwardBackFields(
+  views: View[],
+  hasViews: boolean,
+  existing?: Requirement,
+): string {
   const controlType = existing?.navControlType ?? 'arrows';
   const fwdText = existing?.buttonForwardText ?? '';
   const backText = existing?.buttonBackText ?? '';
+
+  if (!hasViews) {
+    return `
+      <div class="form-hint nav-no-views-hint">Create some views first to set up forward/back navigation.</div>
+      <div class="form-group">
+        <label>Page Order</label>
+        <div class="checkbox-list-placeholder">No views yet</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Control Type</label>
+          <select id="req-nav-control-type" disabled>
+            <option value="arrows">Arrows</option>
+            <option value="buttons">Buttons</option>
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  // Build ordered view list: preserve existing order, filter deleted, append new
+  const orderedViews = buildPageOrder(views, existing?.pageOrder);
+
+  const pageOrderItems = orderedViews
+    .map(
+      (v, i) => `
+      <div class="reorder-item" data-view-id="${v.id}">
+        <span class="reorder-item-name">${escapeHtml(v.name)}</span>
+        <span class="reorder-btns">
+          <button class="page-order-up" data-index="${i}"${i === 0 ? ' disabled' : ''} aria-label="Move up" title="Move up">&#9650;</button>
+          <button class="page-order-down" data-index="${i}"${i === orderedViews.length - 1 ? ' disabled' : ''} aria-label="Move down" title="Move down">&#9660;</button>
+        </span>
+      </div>`,
+    )
+    .join('');
+
   return `
     <div class="form-group">
       <label>Page Order</label>
-      <div class="checkbox-list-placeholder">Add some views first</div>
+      <div class="reorder-list" id="req-page-order">
+        ${pageOrderItems}
+      </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Control Type</label>
-        <select id="req-nav-control-type" disabled>
+        <select id="req-nav-control-type">
           <option value="arrows"${controlType === 'arrows' ? ' selected' : ''}>Arrows</option>
           <option value="buttons"${controlType === 'buttons' ? ' selected' : ''}>Buttons</option>
         </select>
@@ -396,17 +527,53 @@ function renderNavSubtypeFields(
     <div class="form-row" id="req-nav-button-text-row" style="display:${controlType === 'buttons' ? 'grid' : 'none'}">
       <div class="form-group">
         <label>Forward Button Text</label>
-        <input id="req-nav-forward-text" placeholder="Next" value="${escapeAttr(fwdText)}" disabled>
+        <input id="req-nav-forward-text" placeholder="Next" value="${escapeAttr(fwdText)}">
       </div>
       <div class="form-group">
         <label>Back Button Text</label>
-        <input id="req-nav-back-text" placeholder="Previous" value="${escapeAttr(backText)}" disabled>
+        <input id="req-nav-back-text" placeholder="Previous" value="${escapeAttr(backText)}">
       </div>
     </div>
   `;
 }
 
+/** Build the page order: preserve existing order, filter deleted views, append new ones. */
+function buildPageOrder(views: View[], storedOrder?: string[]): View[] {
+  if (!storedOrder || storedOrder.length === 0) return views;
+  const viewMap = new Map(views.map((v) => [v.id, v]));
+  // Keep stored order for views that still exist
+  const ordered: View[] = [];
+  for (const id of storedOrder) {
+    const v = viewMap.get(id);
+    if (v) {
+      ordered.push(v);
+      viewMap.delete(id);
+    }
+  }
+  // Append any new views not in the stored order
+  for (const v of viewMap.values()) {
+    ordered.push(v);
+  }
+  return ordered;
+}
+
 // ── Display text ───────────────────────────────────────────────────────
+
+function viewName(id: string | undefined): string {
+  if (!id) return '?';
+  const { views } = getWizardState();
+  const v = views.find((view) => view.id === id);
+  return v ? v.name : '[deleted view]';
+}
+
+function menuItemsLabel(req: Requirement): string {
+  if (req.menuIncludeAllViews !== false) return 'all views';
+  const { views } = getWizardState();
+  const names = (req.menuItems ?? [])
+    .map((id) => views.find((v) => v.id === id)?.name)
+    .filter(Boolean);
+  return names.length > 0 ? names.join(', ') : '?';
+}
 
 export function getDisplayText(req: Requirement): string {
   switch (req.type) {
@@ -423,12 +590,14 @@ export function getDisplayText(req: Requirement): string {
       return `I need to ${req.verb ?? ''} ${req.data ?? ''}`;
     case 'navigate':
       switch (req.navType) {
-        case 'menu':
-          return 'Navigation menu';
+        case 'menu': {
+          const name = req.menuLabel ? `${req.menuLabel}: ` : '';
+          return `${name}Navigation menu: ${menuItemsLabel(req)}`;
+        }
         case 'forward-back':
           return `Forward/back navigation (${req.navControlType === 'buttons' ? 'buttons' : 'arrows'})`;
         default:
-          return `I need to go from ${req.fromView ?? '?'} to ${req.toView ?? '?'}`;
+          return `${viewName(req.fromView)} → ${viewName(req.toView)}`;
       }
   }
 }
@@ -450,11 +619,11 @@ export function getSidebarText(req: Requirement): string {
     case 'navigate':
       switch (req.navType) {
         case 'menu':
-          return 'Nav: Menu';
+          return `Nav: ${truncate(req.menuLabel || 'menu', 15)}, ${truncate(menuItemsLabel(req), 15)}`;
         case 'forward-back':
           return 'Nav: Fwd/Back';
         default:
-          return `Nav: ${req.fromView ?? '?'} → ${req.toView ?? '?'}`;
+          return `Nav: ${truncate(viewName(req.fromView), 12)} → ${truncate(viewName(req.toView), 12)}`;
       }
   }
 }
@@ -555,6 +724,7 @@ function showForm(type?: RequirementType, existing?: Requirement): void {
   wireTypeDropdown(existing);
   if (formType === 'navigate') {
     wireNavTypeDropdown(existing);
+    wireNavSubtypeControls(existing?.navType ?? 'direct');
   }
   if (formType === 'do') {
     const target = existing?.interactionTarget ?? 'data';
@@ -606,6 +776,9 @@ function wireTypeDropdown(existing?: Requirement): void {
     if (fieldsArea) {
       const prefill = existing?.type === newType ? existing : undefined;
       fieldsArea.innerHTML = renderTypeFields(newType, prefill);
+      if (newType === 'navigate') {
+        wireNavSubtypeControls(prefill?.navType ?? 'direct');
+      }
       if (newType === 'do') {
         const target = prefill?.interactionTarget ?? 'data';
         if (target === 'element') {
@@ -644,10 +817,116 @@ function wireNavTypeDropdown(existing?: Requirement): void {
 
     const prefill = existing?.navType === navType ? existing : undefined;
     fieldsArea.innerHTML = renderNavSubtypeFields(navType, prefill);
+    wireNavSubtypeControls(navType);
 
     wireFormValidation('navigate');
     validateForm('navigate');
   });
+}
+
+function wireNavSubtypeControls(navType: NavType): void {
+  if (navType === 'direct') {
+    wireDirectLinkSelects();
+  } else if (navType === 'menu') {
+    wireMenuControls();
+  } else if (navType === 'forward-back') {
+    wireForwardBackControls();
+  }
+}
+
+function wireDirectLinkSelects(): void {
+  const from = document.getElementById('req-nav-from') as HTMLSelectElement | null;
+  const to = document.getElementById('req-nav-to') as HTMLSelectElement | null;
+  if (from) from.addEventListener('change', () => validateForm('navigate'));
+  if (to) to.addEventListener('change', () => validateForm('navigate'));
+}
+
+function wireMenuControls(): void {
+  const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement | null;
+  const preview = document.getElementById('menu-items-preview');
+  const manual = document.getElementById('menu-items-manual');
+
+  if (toggle) {
+    toggle.addEventListener('change', () => {
+      if (preview) preview.style.display = toggle.checked ? '' : 'none';
+      if (manual) manual.style.display = toggle.checked ? 'none' : '';
+      validateForm('navigate');
+    });
+  }
+
+  // Checkbox list triggers validation
+  document.querySelectorAll('.menu-item-cb').forEach((cb) => {
+    cb.addEventListener('change', () => validateForm('navigate'));
+  });
+}
+
+function wireForwardBackControls(): void {
+  // Page order reorder buttons
+  wirePageOrderButtons();
+
+  // Control type toggles button text visibility
+  const controlType = document.getElementById('req-nav-control-type') as HTMLSelectElement | null;
+  const textRow = document.getElementById('req-nav-button-text-row');
+  if (controlType) {
+    controlType.addEventListener('change', () => {
+      if (textRow) textRow.style.display = controlType.value === 'buttons' ? 'grid' : 'none';
+      validateForm('navigate');
+    });
+  }
+}
+
+function wirePageOrderButtons(): void {
+  const container = document.getElementById('req-page-order');
+  if (!container) return;
+
+  container.querySelectorAll('.page-order-up').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = parseInt((btn as HTMLElement).dataset.index ?? '0', 10);
+      swapPageOrderItems(container, index, index - 1);
+    });
+  });
+  container.querySelectorAll('.page-order-down').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = parseInt((btn as HTMLElement).dataset.index ?? '0', 10);
+      swapPageOrderItems(container, index, index + 1);
+    });
+  });
+}
+
+function swapPageOrderItems(container: HTMLElement, fromIdx: number, toIdx: number): void {
+  const items = container.querySelectorAll('.reorder-item');
+  if (toIdx < 0 || toIdx >= items.length) return;
+
+  const fromEl = items[fromIdx] as HTMLElement;
+  const toEl = items[toIdx] as HTMLElement;
+
+  // Swap DOM positions
+  if (fromIdx < toIdx) {
+    container.insertBefore(toEl, fromEl);
+  } else {
+    container.insertBefore(fromEl, toEl);
+  }
+
+  // Re-index and re-wire
+  reindexPageOrder(container);
+}
+
+function reindexPageOrder(container: HTMLElement): void {
+  const items = container.querySelectorAll('.reorder-item');
+  items.forEach((item, i) => {
+    const up = item.querySelector('.page-order-up') as HTMLButtonElement | null;
+    const down = item.querySelector('.page-order-down') as HTMLButtonElement | null;
+    if (up) {
+      up.dataset.index = String(i);
+      up.disabled = i === 0;
+    }
+    if (down) {
+      down.dataset.index = String(i);
+      down.disabled = i === items.length - 1;
+    }
+  });
+  // Re-wire click handlers
+  wirePageOrderButtons();
 }
 
 function wireDoTargetDropdown(existing?: Requirement): void {
@@ -989,7 +1268,7 @@ function wireFormValidation(type: RequirementType): void {
     if (data) data.addEventListener('input', () => validateForm(type));
     if (element) element.addEventListener('input', () => validateForm(type));
   }
-  // navigate: Save stays disabled until views exist (all sub-forms disabled)
+  // navigate: validation is wired in wireNavSubtypeControls
 }
 
 function validateForm(type: RequirementType): void {
@@ -1020,10 +1299,40 @@ function validateForm(type: RequirementType): void {
       ? (data.value.trim().length ?? 0) > 0
       : (element?.value.trim().length ?? 0) > 0;
     valid = hasVerb && hasTarget;
+  } else if (type === 'navigate') {
+    valid = validateNavigateForm();
   }
-  // navigate: valid stays false until views exist
 
   saveBtn.disabled = !valid;
+}
+
+function validateNavigateForm(): boolean {
+  const navTypeSelect = document.getElementById(
+    'req-nav-type-select',
+  ) as HTMLSelectElement | null;
+  const navType = (navTypeSelect?.value ?? 'direct') as NavType;
+
+  if (navType === 'direct') {
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement | null;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement | null;
+    return !!from?.value && !!to?.value;
+  }
+
+  if (navType === 'menu') {
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement | null;
+    const includeAll = toggle?.checked ?? true;
+
+    // Menu items: either include-all or at least one manual item checked
+    if (includeAll) return true;
+    const checked = document.querySelectorAll('.menu-item-cb:checked');
+    return checked.length > 0;
+  }
+
+  // forward-back: valid when views exist (page order is always all views)
+  const pageOrder = document.getElementById('req-page-order');
+  const hasViews = pageOrder ? pageOrder.querySelectorAll('.reorder-item').length > 0 : false;
+  const controlType = document.getElementById('req-nav-control-type') as HTMLSelectElement | null;
+  return hasViews && !!controlType?.value;
 }
 
 // ── State mutations ────────────────────────────────────────────────────
@@ -1070,13 +1379,6 @@ function buildRequirementFromForm(
   const base: Requirement = { id: generateId(), type };
 
   if (type === 'know') {
-    // Read relatedView (only for know/do)
-    const relatedViewEl = document.getElementById(
-      'req-related-view',
-    ) as HTMLSelectElement | null;
-    const relatedView = relatedViewEl?.value ?? '';
-    if (relatedView) base.relatedView = relatedView;
-
     const textarea = document.getElementById(
       'req-know-text',
     ) as HTMLTextAreaElement | null;
@@ -1144,12 +1446,49 @@ function buildRequirementFromForm(
       base.dataTypeId = dataTypeId;
     }
   } else {
-    // navigate — read navType, currently can't save (all sub-forms disabled)
+    // navigate
     const navTypeSelect = document.getElementById(
       'req-nav-type-select',
     ) as HTMLSelectElement | null;
-    base.navType = (navTypeSelect?.value as NavType) ?? 'direct';
-    return null;
+    const navType = (navTypeSelect?.value as NavType) ?? 'direct';
+    base.navType = navType;
+
+    if (navType === 'direct') {
+      const from = document.getElementById('req-nav-from') as HTMLSelectElement | null;
+      const to = document.getElementById('req-nav-to') as HTMLSelectElement | null;
+      if (!from?.value || !to?.value) return null;
+      base.fromView = from.value;
+      base.toView = to.value;
+    } else if (navType === 'menu') {
+      const labelEl = document.getElementById('req-menu-label') as HTMLInputElement | null;
+      const label = labelEl?.value.trim() ?? '';
+      if (label) base.menuLabel = label;
+
+      const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement | null;
+      const includeAll = toggle?.checked ?? true;
+      base.menuIncludeAllViews = includeAll;
+
+      if (!includeAll) {
+        const checked = document.querySelectorAll('.menu-item-cb:checked');
+        base.menuItems = Array.from(checked).map((cb) => (cb as HTMLInputElement).value);
+        if (base.menuItems.length === 0) return null;
+      }
+    } else {
+      // forward-back — read page order from DOM
+      const items = document.querySelectorAll('#req-page-order .reorder-item');
+      base.pageOrder = Array.from(items).map((el) => (el as HTMLElement).dataset.viewId!);
+      if (base.pageOrder.length === 0) return null;
+
+      const controlType = document.getElementById('req-nav-control-type') as HTMLSelectElement | null;
+      base.navControlType = (controlType?.value as NavControlType) ?? 'arrows';
+
+      if (base.navControlType === 'buttons') {
+        const fwd = document.getElementById('req-nav-forward-text') as HTMLInputElement | null;
+        const back = document.getElementById('req-nav-back-text') as HTMLInputElement | null;
+        if (fwd?.value.trim()) base.buttonForwardText = fwd.value.trim();
+        if (back?.value.trim()) base.buttonBackText = back.value.trim();
+      }
+    }
   }
 
   return base;

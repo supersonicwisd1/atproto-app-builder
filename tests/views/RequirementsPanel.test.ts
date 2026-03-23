@@ -14,7 +14,7 @@ import {
   setWizardState,
   initializeWizardState,
 } from '../../src/app/state/WizardState';
-import type { Requirement, RecordType, NonDataElement } from '../../src/types/wizard';
+import type { Requirement, RecordType, NonDataElement, View } from '../../src/types/wizard';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -43,14 +43,47 @@ describe('getDisplayText', () => {
     expect(getDisplayText(req)).toBe('I need to create a bookmark');
   });
 
-  it('returns "I need to go from [A] to [B]" for direct navigate type', () => {
-    const req = makeRequirement({ type: 'navigate', navType: 'direct', fromView: 'Home', toView: 'Detail' });
-    expect(getDisplayText(req)).toBe('I need to go from Home to Detail');
+  it('returns "ViewA → ViewB" for direct navigate type with view IDs', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Detail', blockIds: [] },
+    ];
+    const req = makeRequirement({ type: 'navigate', navType: 'direct', fromView: 'v1', toView: 'v2' });
+    expect(getDisplayText(req)).toBe('Home → Detail');
   });
 
-  it('returns "Navigation menu" for menu navigate type', () => {
-    const req = makeRequirement({ type: 'navigate', navType: 'menu' });
-    expect(getDisplayText(req)).toBe('Navigation menu');
+  it('returns "[deleted view]" when a referenced view no longer exists', () => {
+    const state = getWizardState();
+    state.views = [{ id: 'v1', name: 'Home', blockIds: [] }];
+    const req = makeRequirement({ type: 'navigate', navType: 'direct', fromView: 'v1', toView: 'gone' });
+    expect(getDisplayText(req)).toBe('Home → [deleted view]');
+  });
+
+  it('returns "Navigation menu: all views" for menu with includeAllViews', () => {
+    const req = makeRequirement({ type: 'navigate', navType: 'menu', menuIncludeAllViews: true });
+    expect(getDisplayText(req)).toBe('Navigation menu: all views');
+  });
+
+  it('returns "Navigation menu: ViewA, ViewB" for menu with manual items', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+    ];
+    const req = makeRequirement({
+      type: 'navigate', navType: 'menu',
+      menuIncludeAllViews: false, menuItems: ['v1', 'v2'],
+    });
+    expect(getDisplayText(req)).toBe('Navigation menu: Home, Profile');
+  });
+
+  it('includes menuLabel in display text when set', () => {
+    const req = makeRequirement({
+      type: 'navigate', navType: 'menu',
+      menuLabel: 'Main Nav', menuIncludeAllViews: true,
+    });
+    expect(getDisplayText(req)).toBe('Main Nav: Navigation menu: all views');
   });
 
   it('returns "Forward/back navigation (arrows)" for forward-back with arrows', () => {
@@ -69,8 +102,13 @@ describe('getDisplayText', () => {
   });
 
   it('handles navigate with no navType as direct link', () => {
-    const req = makeRequirement({ type: 'navigate', fromView: 'Home', toView: 'Detail' });
-    expect(getDisplayText(req)).toBe('I need to go from Home to Detail');
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Detail', blockIds: [] },
+    ];
+    const req = makeRequirement({ type: 'navigate', fromView: 'v1', toView: 'v2' });
+    expect(getDisplayText(req)).toBe('Home → Detail');
   });
 
   it('handles missing fields gracefully', () => {
@@ -114,14 +152,40 @@ describe('getSidebarText', () => {
     expect(getSidebarText(req)).toBe('Do: create a bookmark');
   });
 
-  it('returns "Nav: [A] → [B]" for direct navigate', () => {
-    const req = makeRequirement({ type: 'navigate', navType: 'direct', fromView: 'Home', toView: 'Detail' });
+  it('returns "Nav: ViewA → ViewB" for direct navigate with view IDs', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Detail', blockIds: [] },
+    ];
+    const req = makeRequirement({ type: 'navigate', navType: 'direct', fromView: 'v1', toView: 'v2' });
     expect(getSidebarText(req)).toBe('Nav: Home → Detail');
   });
 
-  it('returns "Nav: Menu" for menu navigate', () => {
-    const req = makeRequirement({ type: 'navigate', navType: 'menu' });
-    expect(getSidebarText(req)).toBe('Nav: Menu');
+  it('returns "Nav: menu, all views" for menu with includeAllViews', () => {
+    const req = makeRequirement({ type: 'navigate', navType: 'menu', menuIncludeAllViews: true });
+    expect(getSidebarText(req)).toBe('Nav: menu, all views');
+  });
+
+  it('returns "Nav: menu, ViewA, ViewB" for menu with manual items', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+    ];
+    const req = makeRequirement({
+      type: 'navigate', navType: 'menu',
+      menuIncludeAllViews: false, menuItems: ['v1', 'v2'],
+    });
+    expect(getSidebarText(req)).toBe('Nav: menu, Home, Profile');
+  });
+
+  it('includes menuLabel in sidebar text when set', () => {
+    const req = makeRequirement({
+      type: 'navigate', navType: 'menu',
+      menuLabel: 'Main Nav', menuIncludeAllViews: true,
+    });
+    expect(getSidebarText(req)).toBe('Nav: Main Nav, all views');
   });
 
   it('returns "Nav: Fwd/Back" for forward-back navigate', () => {
@@ -268,7 +332,6 @@ describe('wireRequirementsPanel (DOM)', () => {
     document.getElementById('req-add-btn')!.click();
     expect(document.getElementById('req-form')).not.toBeNull();
     expect(document.getElementById('req-type-select')).not.toBeNull();
-    expect(document.getElementById('req-related-view')).not.toBeNull();
   });
 
   it('Type dropdown defaults to "know" when adding new', () => {
@@ -292,32 +355,29 @@ describe('wireRequirementsPanel (DOM)', () => {
 
   // ── Navigate sub-form tests ───────────────────────────────────────
 
-  it('changing Type to navigate shows Type of Navigation dropdown instead of Related View', () => {
+  it('changing Type to navigate shows Type of Navigation dropdown', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
     typeSelect.value = 'navigate';
     typeSelect.dispatchEvent(new Event('change'));
-    // Related View should be gone, nav type dropdown should appear
-    expect(document.getElementById('req-related-view')).toBeNull();
     expect(document.getElementById('req-nav-type-select')).not.toBeNull();
   });
 
-  it('switching back from navigate to know restores Related View dropdown', () => {
+  it('switching back from navigate to know removes nav type dropdown', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
     typeSelect.value = 'navigate';
     typeSelect.dispatchEvent(new Event('change'));
-    expect(document.getElementById('req-related-view')).toBeNull();
+    expect(document.getElementById('req-nav-type-select')).not.toBeNull();
 
     typeSelect.value = 'know';
     typeSelect.dispatchEvent(new Event('change'));
-    expect(document.getElementById('req-related-view')).not.toBeNull();
     expect(document.getElementById('req-nav-type-select')).toBeNull();
   });
 
-  it('navigate defaults to Direct Link with disabled From/To dropdowns', () => {
+  it('navigate defaults to Direct Link with populated From/To dropdowns (Home view is seeded)', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
@@ -326,12 +386,36 @@ describe('wireRequirementsPanel (DOM)', () => {
 
     const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement;
     expect(navTypeSelect.value).toBe('direct');
-    expect(document.getElementById('req-nav-from')).not.toBeNull();
-    expect((document.getElementById('req-nav-from') as HTMLSelectElement).disabled).toBe(true);
-    expect((document.getElementById('req-nav-to') as HTMLSelectElement).disabled).toBe(true);
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement;
+    expect(from).not.toBeNull();
+    expect(from.disabled).toBe(false);
+    expect(to.disabled).toBe(false);
+    // placeholder + seeded Home view
+    expect(from.querySelectorAll('option').length).toBe(2);
   });
 
-  it('changing nav type to menu shows explanatory text and checkbox placeholders', () => {
+  it('navigate Direct Link populates selects when views exist', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+    ];
+    mountPanel();
+    document.getElementById('req-add-btn')!.click();
+    const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
+    typeSelect.value = 'navigate';
+    typeSelect.dispatchEvent(new Event('change'));
+
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement;
+    expect(from.disabled).toBe(false);
+    expect(to.disabled).toBe(false);
+    expect(from.querySelectorAll('option').length).toBe(3); // placeholder + 2 views
+    expect(from.querySelector('option[value="v1"]')!.textContent).toBe('Home');
+  });
+
+  it('changing nav type to menu shows include-all toggle and checkbox lists (Home is seeded)', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
@@ -343,13 +427,35 @@ describe('wireRequirementsPanel (DOM)', () => {
     navTypeSelect.dispatchEvent(new Event('change'));
 
     const fieldsArea = document.getElementById('req-type-fields')!;
-    expect(fieldsArea.innerHTML).toContain('navigation menu');
-    expect(fieldsArea.innerHTML).toContain('Menu Items');
-    expect(fieldsArea.innerHTML).toContain('Show Menu On');
-    expect(fieldsArea.querySelectorAll('.checkbox-list-placeholder')).toHaveLength(2);
+    expect(fieldsArea.innerHTML).toContain('Include all views');
+    expect(document.getElementById('menu-include-all-views')).not.toBeNull();
   });
 
-  it('changing nav type to forward-back shows page order and control type', () => {
+  it('changing nav type to menu shows include-all toggle and checkbox lists when views exist', () => {
+    const state = getWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+    ];
+    mountPanel();
+    document.getElementById('req-add-btn')!.click();
+    const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
+    typeSelect.value = 'navigate';
+    typeSelect.dispatchEvent(new Event('change'));
+
+    const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement;
+    navTypeSelect.value = 'menu';
+    navTypeSelect.dispatchEvent(new Event('change'));
+
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement;
+    expect(toggle).not.toBeNull();
+    expect(toggle.checked).toBe(true);
+    // Preview should be visible, manual list hidden
+    expect(document.getElementById('menu-items-preview')!.style.display).not.toBe('none');
+    expect(document.getElementById('menu-items-manual')!.style.display).toBe('none');
+  });
+
+  it('changing nav type to forward-back shows page order and control type (Home is seeded)', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
@@ -364,10 +470,12 @@ describe('wireRequirementsPanel (DOM)', () => {
     expect(fieldsArea.innerHTML).toContain('Page Order');
     expect(fieldsArea.innerHTML).toContain('Control Type');
     expect(document.getElementById('req-nav-control-type')).not.toBeNull();
-    expect((document.getElementById('req-nav-control-type') as HTMLSelectElement).disabled).toBe(true);
+    expect((document.getElementById('req-nav-control-type') as HTMLSelectElement).disabled).toBe(false);
+    // Page order should show seeded Home view
+    expect(document.querySelectorAll('#req-page-order .reorder-item').length).toBe(1);
   });
 
-  it('Navigation Menu option is disabled when a menu requirement already exists', () => {
+  it('Navigation Menu option is not disabled when a menu already exists (multiple allowed)', () => {
     const menuReq = makeRequirement({ type: 'navigate', navType: 'menu' });
     const state = getWizardState();
     state.requirements = [menuReq];
@@ -380,7 +488,7 @@ describe('wireRequirementsPanel (DOM)', () => {
 
     const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement;
     const menuOption = navTypeSelect.querySelector('option[value="menu"]') as HTMLOptionElement;
-    expect(menuOption.disabled).toBe(true);
+    expect(menuOption.disabled).toBe(false);
   });
 
   it('Forward/Back option is disabled when a forward-back requirement already exists', () => {
@@ -477,25 +585,26 @@ describe('wireRequirementsPanel (DOM)', () => {
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it('save button stays disabled for all navigate sub-forms (views not yet available)', () => {
+  it('save button disabled for direct link until both views selected, enabled for menu/fwd-back with seeded view', () => {
     mountPanel();
     document.getElementById('req-add-btn')!.click();
     const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
     typeSelect.value = 'navigate';
     typeSelect.dispatchEvent(new Event('change'));
     const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement;
+    // Direct link: disabled until both from/to selected
     expect(saveBtn.disabled).toBe(true);
 
-    // Change to menu — still disabled
+    // Menu: enabled (include-all default + seeded Home view in visible-on)
     const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement;
     navTypeSelect.value = 'menu';
     navTypeSelect.dispatchEvent(new Event('change'));
-    expect(saveBtn.disabled).toBe(true);
+    expect(saveBtn.disabled).toBe(false);
 
-    // Change to forward-back — still disabled
+    // Forward/back: enabled (seeded Home view in page order)
     navTypeSelect.value = 'forward-back';
     navTypeSelect.dispatchEvent(new Event('change'));
-    expect(saveBtn.disabled).toBe(true);
+    expect(saveBtn.disabled).toBe(false);
   });
 
   it('saving a know requirement adds it to state and re-renders', () => {
@@ -1478,5 +1587,322 @@ describe('non-data element interactions', () => {
     const html = renderRequirementsPanel();
     expect(html).toContain('I need to set the Timer');
     expect(html).toContain('Interaction');
+  });
+});
+
+// ── Navigate wiring (with views) ─────────────────────────────────────
+
+describe('navigate requirements with views', () => {
+  function makeViews(): View[] {
+    return [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+      { id: 'v3', name: 'Settings', blockIds: [] },
+    ];
+  }
+
+  function mountPanelWithViews(): void {
+    const state = initializeWizardState();
+    state.views = makeViews();
+    setWizardState(state);
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderRequirementsPanel()}</div>
+      <div class="sidebar-section" data-section="requirements">
+        <span class="badge">0</span>
+        <div class="sidebar-items"><div class="sidebar-item-empty">None yet</div></div>
+      </div>
+      <div class="sidebar-section" data-section="data">
+        <span class="badge">0</span>
+        <div class="sidebar-items"><div class="sidebar-item-empty">None yet</div></div>
+      </div>
+    `;
+    wireRequirementsPanel();
+  }
+
+  function openNavForm(navType: string): void {
+    document.getElementById('req-add-btn')!.click();
+    const typeSelect = document.getElementById('req-type-select') as HTMLSelectElement;
+    typeSelect.value = 'navigate';
+    typeSelect.dispatchEvent(new Event('change'));
+    if (navType !== 'direct') {
+      const navTypeSelect = document.getElementById('req-nav-type-select') as HTMLSelectElement;
+      navTypeSelect.value = navType;
+      navTypeSelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  // ── Direct Link ──
+
+  it('Direct Link: save enables when both views selected', () => {
+    mountPanelWithViews();
+    openNavForm('direct');
+
+    const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement;
+    expect(saveBtn.disabled).toBe(true);
+
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement;
+    from.value = 'v1';
+    from.dispatchEvent(new Event('change'));
+    expect(saveBtn.disabled).toBe(true); // still need "to"
+
+    to.value = 'v2';
+    to.dispatchEvent(new Event('change'));
+    expect(saveBtn.disabled).toBe(false);
+  });
+
+  it('Direct Link: saves with view IDs', () => {
+    mountPanelWithViews();
+    openNavForm('direct');
+
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement;
+    from.value = 'v1';
+    from.dispatchEvent(new Event('change'));
+    to.value = 'v2';
+    to.dispatchEvent(new Event('change'));
+    (document.querySelector('.req-save-btn') as HTMLElement).click();
+
+    const req = getWizardState().requirements[0];
+    expect(req.type).toBe('navigate');
+    expect(req.navType).toBe('direct');
+    expect(req.fromView).toBe('v1');
+    expect(req.toView).toBe('v2');
+  });
+
+  // ── Navigation Menu ──
+
+  it('Menu: save enables with include-all (default) and at least one visible-on', () => {
+    mountPanelWithViews();
+    openNavForm('menu');
+
+    const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement;
+    // Include all is checked, all visible-on are checked by default
+    expect(saveBtn.disabled).toBe(false);
+  });
+
+  it('Menu: unchecking include-all shows manual checkbox list', () => {
+    mountPanelWithViews();
+    openNavForm('menu');
+
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event('change'));
+
+    expect(document.getElementById('menu-items-preview')!.style.display).toBe('none');
+    expect(document.getElementById('menu-items-manual')!.style.display).not.toBe('none');
+  });
+
+  it('Menu: save disabled when include-all unchecked and no items selected', () => {
+    mountPanelWithViews();
+    openNavForm('menu');
+
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event('change'));
+
+    // Uncheck all menu items
+    document.querySelectorAll('.menu-item-cb').forEach((cb) => {
+      (cb as HTMLInputElement).checked = false;
+      cb.dispatchEvent(new Event('change'));
+    });
+
+    const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement;
+    expect(saveBtn.disabled).toBe(true);
+  });
+
+  it('Menu: saves with menuIncludeAllViews', () => {
+    mountPanelWithViews();
+    openNavForm('menu');
+
+    (document.querySelector('.req-save-btn') as HTMLElement).click();
+
+    const req = getWizardState().requirements[0];
+    expect(req.navType).toBe('menu');
+    expect(req.menuIncludeAllViews).toBe(true);
+    expect(req.menuItems).toBeUndefined();
+  });
+
+  it('Menu: saves manual items when include-all unchecked', () => {
+    mountPanelWithViews();
+    openNavForm('menu');
+
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event('change'));
+
+    // Uncheck the first menu item (Home)
+    const cbs = document.querySelectorAll('.menu-item-cb') as NodeListOf<HTMLInputElement>;
+    cbs[0].checked = false;
+    cbs[0].dispatchEvent(new Event('change'));
+
+    (document.querySelector('.req-save-btn') as HTMLElement).click();
+
+    const req = getWizardState().requirements[0];
+    expect(req.menuIncludeAllViews).toBe(false);
+    expect(req.menuItems).toEqual(['v2', 'v3']);
+  });
+
+  // ── Forward/Back ──
+
+  it('Forward/Back: save enables when views exist', () => {
+    mountPanelWithViews();
+    openNavForm('forward-back');
+
+    const saveBtn = document.querySelector('.req-save-btn') as HTMLButtonElement;
+    expect(saveBtn.disabled).toBe(false);
+  });
+
+  it('Forward/Back: saves page order and control type', () => {
+    mountPanelWithViews();
+    openNavForm('forward-back');
+
+    (document.querySelector('.req-save-btn') as HTMLElement).click();
+
+    const req = getWizardState().requirements[0];
+    expect(req.navType).toBe('forward-back');
+    expect(req.pageOrder).toEqual(['v1', 'v2', 'v3']);
+    expect(req.navControlType).toBe('arrows');
+  });
+
+  it('Forward/Back: reorder buttons swap items', () => {
+    mountPanelWithViews();
+    openNavForm('forward-back');
+
+    // Move second item (Profile) up
+    const downBtns = document.querySelectorAll('.page-order-up');
+    (downBtns[1] as HTMLElement).click(); // index 1 up button
+
+    const items = document.querySelectorAll('#req-page-order .reorder-item');
+    expect((items[0] as HTMLElement).dataset.viewId).toBe('v2');
+    expect((items[1] as HTMLElement).dataset.viewId).toBe('v1');
+    expect((items[2] as HTMLElement).dataset.viewId).toBe('v3');
+  });
+
+  it('Forward/Back: control type toggle shows/hides button text fields', () => {
+    mountPanelWithViews();
+    openNavForm('forward-back');
+
+    const controlType = document.getElementById('req-nav-control-type') as HTMLSelectElement;
+    const textRow = document.getElementById('req-nav-button-text-row')!;
+
+    expect(textRow.style.display).toBe('none');
+
+    controlType.value = 'buttons';
+    controlType.dispatchEvent(new Event('change'));
+    expect(textRow.style.display).toBe('grid');
+  });
+
+  it('Forward/Back: saves button text when control type is buttons', () => {
+    mountPanelWithViews();
+    openNavForm('forward-back');
+
+    const controlType = document.getElementById('req-nav-control-type') as HTMLSelectElement;
+    controlType.value = 'buttons';
+    controlType.dispatchEvent(new Event('change'));
+
+    (document.getElementById('req-nav-forward-text') as HTMLInputElement).value = 'Next';
+    (document.getElementById('req-nav-back-text') as HTMLInputElement).value = 'Previous';
+
+    (document.querySelector('.req-save-btn') as HTMLElement).click();
+
+    const req = getWizardState().requirements[0];
+    expect(req.navControlType).toBe('buttons');
+    expect(req.buttonForwardText).toBe('Next');
+    expect(req.buttonBackText).toBe('Previous');
+  });
+
+  // ── Edit round-trip ──
+
+  it('editing a Direct Link pre-fills from/to views', () => {
+    const state = initializeWizardState();
+    state.views = makeViews();
+    state.requirements = [
+      { id: 'req-dl', type: 'navigate', navType: 'direct', fromView: 'v1', toView: 'v3' },
+    ];
+    setWizardState(state);
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderRequirementsPanel()}</div>
+      <div class="sidebar-section" data-section="requirements">
+        <span class="badge">1</span>
+        <div class="sidebar-items"></div>
+      </div>
+      <div class="sidebar-section" data-section="data">
+        <span class="badge">0</span>
+        <div class="sidebar-items"></div>
+      </div>
+    `;
+    wireRequirementsPanel();
+
+    (document.querySelector('.req-edit-btn') as HTMLElement).click();
+
+    const from = document.getElementById('req-nav-from') as HTMLSelectElement;
+    const to = document.getElementById('req-nav-to') as HTMLSelectElement;
+    expect(from.value).toBe('v1');
+    expect(to.value).toBe('v3');
+  });
+
+  it('editing a Menu pre-fills include-all toggle and visible-on', () => {
+    const state = initializeWizardState();
+    state.views = makeViews();
+    state.requirements = [
+      {
+        id: 'req-menu',
+        type: 'navigate',
+        navType: 'menu',
+        menuIncludeAllViews: false,
+        menuItems: ['v1', 'v2'],
+      },
+    ];
+    setWizardState(state);
+    document.body.innerHTML = `
+      <div id="workspace-panel-body">${renderRequirementsPanel()}</div>
+      <div class="sidebar-section" data-section="requirements">
+        <span class="badge">1</span>
+        <div class="sidebar-items"></div>
+      </div>
+      <div class="sidebar-section" data-section="data">
+        <span class="badge">0</span>
+        <div class="sidebar-items"></div>
+      </div>
+    `;
+    wireRequirementsPanel();
+
+    (document.querySelector('.req-edit-btn') as HTMLElement).click();
+
+    const toggle = document.getElementById('menu-include-all-views') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+
+    // Manual list should be visible
+    expect(document.getElementById('menu-items-manual')!.style.display).not.toBe('none');
+
+    const menuCbs = document.querySelectorAll('.menu-item-cb') as NodeListOf<HTMLInputElement>;
+    expect(menuCbs[0].checked).toBe(true);  // v1
+    expect(menuCbs[1].checked).toBe(true);  // v2
+    expect(menuCbs[2].checked).toBe(false); // v3
+  });
+
+  // ── Include-all menu reflects current views ──
+
+  it('menu with includeAllViews reflects views at render time', () => {
+    const state = initializeWizardState();
+    state.views = [
+      { id: 'v1', name: 'Home', blockIds: [] },
+      { id: 'v2', name: 'Profile', blockIds: [] },
+    ];
+    state.requirements = [
+      { id: 'req-menu', type: 'navigate', navType: 'menu', menuIncludeAllViews: true },
+    ];
+    setWizardState(state);
+
+    // Add a new view
+    state.views.push({ id: 'v3', name: 'Settings', blockIds: [] });
+
+    // Display text should show "all views" (derived, not stored)
+    expect(getDisplayText(state.requirements[0])).toBe('Navigation menu: all views');
   });
 });

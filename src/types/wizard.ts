@@ -132,15 +132,14 @@ export interface Requirement {
   fromView?: string;
   toView?: string;
   // navigate — menu
+  menuLabel?: string;
+  menuIncludeAllViews?: boolean;
   menuItems?: string[];
-  menuVisibleOn?: string[];
   // navigate — forward/back
   pageOrder?: string[];
   navControlType?: NavControlType;
   buttonForwardText?: string;
   buttonBackText?: string;
-  // shared (know/do only)
-  relatedView?: string;
 }
 
 export interface WizardState {

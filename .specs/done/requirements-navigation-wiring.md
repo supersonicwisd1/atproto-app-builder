@@ -84,7 +84,7 @@ Replace the disabled placeholder dropdowns with populated `<select>` elements:
 
 ### Forward/Back sub-form
 
-- **Page Order:** Reorder list populated with all view names from `wizardState.views`. Uses up/down buttons (same pattern as block card reorder).
+- **Page Order:** Reorder list populated with all view names from `wizardState.views`. All views are always included — the user sets the sequence but cannot exclude views. Uses up/down buttons (same pattern as block card reorder).
 - **Control Type:** Dropdown with "Arrows" / "Buttons" (already rendered, just needs to be enabled).
 - **Button text fields:** Shown when "Buttons" is selected (already rendered).
 
@@ -94,7 +94,7 @@ Currently, the save function returns `null` for navigate requirements. This spec
 
 - **Direct Link:** Save when `fromView` and `toView` are both selected.
 - **Navigation Menu:** Save when `menuIncludeAllViews` is true (no further validation needed for items), OR when at least one `menuItem` is manually selected. At least one `menuVisibleOn` must be selected.
-- **Forward/Back:** Save when `pageOrder` contains at least one view and `navControlType` is selected.
+- **Forward/Back:** Save when at least one view exists (all views are always included in the page order) and `navControlType` is selected.
 
 ## Acceptance Criteria
 
@@ -110,9 +110,9 @@ Currently, the save function returns `null` for navigate requirements. This spec
   - When unchecked, the Menu Items checkbox list appears with all views. The user manually selects which views to include.
   - The toggle state is stored as `menuIncludeAllViews` on the requirement.
 
-- [ ] Navigation Menu "Include all views" auto-updates
-  - When `menuIncludeAllViews` is true and the user adds, renames, or deletes a view (via the Views panel), the menu requirement's display text and sidebar text reflect the current views without any user action in the Requirements panel.
-  - No data migration is needed when views change — the menu items are derived from `wizardState.views` at render time.
+- [ ] Navigation Menu "Include all views" reflects current views
+  - When `menuIncludeAllViews` is true, the menu's items are derived from `wizardState.views` at render time — nothing is stored in `menuItems`. This means whenever the user views or edits the menu requirement, it naturally reflects whatever views currently exist (including any views added or deleted since the menu was created).
+  - No cross-panel live updates are needed. The derivation happens when the Requirements panel renders.
 
 - [ ] Navigation Menu "Show Menu On" is populated with views
   - The "Show Menu On" checkbox list shows all views from `wizardState.views`.
@@ -132,14 +132,15 @@ Currently, the save function returns `null` for navigate requirements. This spec
   - Editing a saved navigate requirement re-populates the sub-form with stored values.
 
 - [ ] Display text updates for "Include all views" menus
-  - Sidebar text for a menu with `menuIncludeAllViews: true` shows: "menu: all views"
-  - Sidebar text for a menu with manual items shows: "menu: Home, Profile" (view names joined)
+  - Sidebar text for a menu with `menuIncludeAllViews: true` shows: "Nav: menu, all views"
+  - Sidebar text for a menu with manual items shows: "Nav: menu, Home, Profile" (view names joined)
   - Display text on block cards follows the same pattern.
 
 ## Scope
 
 **In scope:**
-- Populating all view-referencing dropdowns and lists with data from `wizardState.views`
+- Populating all navigate view-referencing dropdowns and lists with data from `wizardState.views`
+- Removed the unused "Related View" dropdown from Information (know) requirements
 - `menuIncludeAllViews` field on Requirement and corresponding UI toggle
 - Read-only view preview when "Include all views" is checked
 - Manual menu item selection when "Include all views" is unchecked
@@ -177,10 +178,10 @@ Currently, the save function returns `null` for navigate requirements. This spec
 - Action: User creates a Navigate > Navigation Menu requirement. "Include all views" is checked by default. Preview shows "Currently: Home, Profile, Settings". User clicks Save.
 - Expected outcome: Requirement saved with `menuIncludeAllViews: true`, no `menuItems` stored. Sidebar shows "menu: all views". Display text shows "menu: all views".
 
-**Scenario 2: Auto-update when a view is added**
+**Scenario 2: Menu reflects views added after creation**
 - Setup: Navigation Menu requirement exists with `menuIncludeAllViews: true`. Views: Home, Profile.
-- Action: User goes to Views panel and creates a "Settings" view.
-- Expected outcome: Without any action in the Requirements panel, the menu requirement's display now reflects 3 views. If the user edits the requirement, the preview shows "Currently: Home, Profile, Settings".
+- Action: User goes to Views panel and creates a "Settings" view. Then navigates back to the Requirements panel and edits the menu requirement.
+- Expected outcome: The preview shows "Currently: Home, Profile, Settings" — the newly added view is included because menu items are derived from `wizardState.views` at render time.
 
 **Scenario 3: Switching to manual menu items**
 - Setup: Navigation Menu requirement exists with `menuIncludeAllViews: true`. Views: Home, Profile, Settings.
@@ -207,7 +208,12 @@ Currently, the save function returns `null` for navigate requirements. This spec
 - Action: "Include all views" is checked. In "Show Menu On", all 3 views are checked. User unchecks "Settings" (the settings page shouldn't show the main nav menu). Clicks Save.
 - Expected outcome: Requirement saved with `menuVisibleOn: [homeId, profileId]`. The menu links to all views but only appears on Home and Profile.
 
-**Scenario 8: No views exist yet**
+**Scenario 8: Forward/Back page order after views change**
+- Setup: Forward/Back requirement exists with `pageOrder: [homeId, profileId, settingsId]`. User deletes "Profile" view and adds a "Dashboard" view.
+- Action: User edits the Forward/Back requirement.
+- Expected outcome: Page Order shows [Home, Settings, Dashboard]. Deleted view is filtered out, new view is appended to the end. The user's custom ordering of the remaining views is preserved.
+
+**Scenario 9: No views exist yet**
 - Setup: User has not created any views (edge case — should not happen since Home is seeded, but defensive).
 - Action: User opens Navigate > Direct Link sub-form.
 - Expected outcome: Dropdowns are empty with placeholder text. Save button is disabled. Hint text suggests creating views first.
@@ -215,8 +221,8 @@ Currently, the save function returns `null` for navigate requirements. This spec
 ## How to Verify
 
 1. Create a Direct Link requirement — verify From/To dropdowns populate with views, requirement saves and displays correctly
-2. Create a Navigation Menu with "Include all views" checked — verify preview shows current views, saves with `menuIncludeAllViews: true`, sidebar shows "menu: all views"
-3. Add a new view, then check the menu requirement — verify it reflects the new view without editing
+2. Create a Navigation Menu with "Include all views" checked — verify preview shows current views, saves with `menuIncludeAllViews: true`, sidebar shows "Nav: menu, all views"
+3. Add a new view, then navigate to the menu requirement — verify it reflects the new view
 4. Edit the menu, uncheck "Include all views" — verify checkbox list appears, manually deselect a view, save, verify sidebar shows specific view names
 5. Verify "Show Menu On" works independently of "Include all views"
 6. Create a Forward/Back requirement — verify page order list, reorder, control type, button text all save correctly
