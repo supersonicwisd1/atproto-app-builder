@@ -5,50 +5,50 @@
 export interface Field {
   id: string;
   name: string;
-  type: string;           // 'string' | 'integer' | 'boolean' | 'blob' | 'bytes' |
-                          // 'cid-link' | 'array-string' | 'array-integer' | 'ref' |
-                          // 'union' | 'object' | 'unknown'
-  format?: string;        // for string type: 'datetime' | 'uri' | 'at-uri' | 'did' |
-                          // 'handle' | 'nsid' | 'tid' | 'record-key' | 'language' | 'cid'
-  maxLength?: number;     // string (bytes), bytes, array (items)
-  minLength?: number;     // string (bytes), bytes, array (items)
-  maxGraphemes?: number;  // string
-  minGraphemes?: number;  // string
-  minimum?: number;       // integer
-  maximum?: number;       // integer
-  accept?: string[];      // blob — MIME type patterns
-  maxSize?: number;       // blob — bytes
-  refTarget?: string;     // ref — target NSID or internal RecordType id
+  type: string; // 'string' | 'integer' | 'boolean' | 'blob' | 'bytes' |
+  // 'cid-link' | 'array-string' | 'array-integer' | 'ref' |
+  // 'union' | 'object' | 'unknown'
+  format?: string; // for string type: 'datetime' | 'uri' | 'at-uri' | 'did' |
+  // 'handle' | 'nsid' | 'tid' | 'record-key' | 'language' | 'cid'
+  maxLength?: number; // string (bytes), bytes, array (items)
+  minLength?: number; // string (bytes), bytes, array (items)
+  maxGraphemes?: number; // string
+  minGraphemes?: number; // string
+  minimum?: number; // integer
+  maximum?: number; // integer
+  accept?: string[]; // blob — MIME type patterns
+  maxSize?: number; // blob — bytes
+  refTarget?: string; // ref — target NSID or internal RecordType id
   /** @deprecated Use blob type with accept instead */
   mediaType?: string;
   description?: string;
   required: boolean;
-  isSystem?: boolean;     // true for auto-generated fields like createdAt
+  isSystem?: boolean; // true for auto-generated fields like createdAt
 }
 
 export type NamespaceOption = 'thelexfiles' | 'thelexfiles-temp' | 'byo-domain';
 
 export interface RecordType {
   id: string;
-  name: string;           // lexicon name segment (lowerCamelCase)
-  displayName: string;    // human-readable label, seeded from requirement's data type selection
+  name: string; // lexicon name segment (lowerCamelCase)
+  displayName: string; // human-readable label, seeded from requirement's data type selection
   description: string;
   fields: Field[];
 
   // Lexicon source
-  source: 'new' | 'adopted';          // default 'new'
+  source: 'new' | 'adopted'; // default 'new'
 
   // For adopted lexicons
-  adoptedNsid?: string;               // full NSID of adopted schema
+  adoptedNsid?: string; // full NSID of adopted schema
   adoptedSchema?: import('./generation').LexiconSchema; // full schema JSON for reference
 
   // For new lexicons — namespace
   namespaceOption?: NamespaceOption;
-  lexUsername?: string;                // theLexFiles.com username
-  customDomain?: string;              // BYO domain
+  lexUsername?: string; // theLexFiles.com username
+  customDomain?: string; // BYO domain
 
   // Record key type
-  recordKeyType?: 'tid' | 'any';      // default 'tid'
+  recordKeyType?: 'tid' | 'any'; // default 'tid'
 }
 
 export interface QueryMethod {
@@ -75,7 +75,7 @@ export interface AppInfo {
   authorName: string;
 
   // Cached namespace defaults
-  lexUsername?: string;                // last-used theLexFiles.com username
+  lexUsername?: string; // last-used theLexFiles.com username
   lastNamespaceOption?: NamespaceOption;
 }
 
@@ -99,8 +99,14 @@ export interface NonDataElement {
 
 export interface Block {
   id: string;
-  name: string;                // user-given name, e.g. "Post Feed", "About Section"
-  requirementIds: string[];    // ordered list of Requirement ids
+  name: string; // user-given name, e.g. "Post Feed", "About Section"
+  requirementIds: string[]; // ordered list of Requirement ids
+}
+
+export interface View {
+  id: string;
+  name: string; // user-given name, e.g. "Home", "Profile", "Settings"
+  blockIds: string[]; // ordered list of Block ids placed on this view
 }
 
 export type NavType = 'direct' | 'menu' | 'forward-back';
@@ -118,8 +124,8 @@ export interface Requirement {
   data?: string;
   dataTypeId?: string;
   interactionTarget?: InteractionTarget; // default 'data' for backward compat
-  elementId?: string;                    // link to NonDataElement (when target is 'element')
-  usesDataTypeId?: string;              // optional data source for element interactions
+  elementId?: string; // link to NonDataElement (when target is 'element')
+  usesDataTypeId?: string; // optional data source for element interactions
   // 'navigate' type
   navType?: NavType;
   // navigate — direct link
@@ -151,6 +157,7 @@ export interface WizardState {
   requirements: Requirement[];
   nonDataElements: NonDataElement[];
   blocks: Block[];
+  views: View[];
 }
 
 export interface LoadedState {

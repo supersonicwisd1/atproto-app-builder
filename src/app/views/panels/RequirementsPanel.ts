@@ -698,7 +698,9 @@ function wireDoTargetDropdown(existing?: Requirement): void {
 // ── Combobox ────────────────────────────────────────────────────────────
 
 function wireCombobox(): void {
-  const input = document.getElementById('req-do-data') as HTMLInputElement | null;
+  const input = document.getElementById(
+    'req-do-data',
+  ) as HTMLInputElement | null;
   const dropdown = document.getElementById('req-do-data-dropdown');
   if (!input || !dropdown) return;
 
@@ -711,14 +713,11 @@ function wireCombobox(): void {
 
     const query = input!.value.trim().toLowerCase();
     const filtered = query
-      ? recordTypes.filter((rt) =>
-          rt.displayName.toLowerCase().includes(query),
-        )
+      ? recordTypes.filter((rt) => rt.displayName.toLowerCase().includes(query))
       : recordTypes;
 
     const exactMatch =
-      query &&
-      recordTypes.some((rt) => rt.displayName.toLowerCase() === query);
+      query && recordTypes.some((rt) => rt.displayName.toLowerCase() === query);
 
     let html = filtered
       .map(
@@ -780,7 +779,9 @@ function wireCombobox(): void {
 }
 
 function wireElementCombobox(): void {
-  const input = document.getElementById('req-do-element') as HTMLInputElement | null;
+  const input = document.getElementById(
+    'req-do-element',
+  ) as HTMLInputElement | null;
   const dropdown = document.getElementById('req-do-element-dropdown');
   if (!input || !dropdown) return;
 
@@ -793,14 +794,11 @@ function wireElementCombobox(): void {
 
     const query = input!.value.trim().toLowerCase();
     const filtered = query
-      ? nonDataElements.filter((el) =>
-          el.name.toLowerCase().includes(query),
-        )
+      ? nonDataElements.filter((el) => el.name.toLowerCase().includes(query))
       : nonDataElements;
 
     const exactMatch =
-      query &&
-      nonDataElements.some((el) => el.name.toLowerCase() === query);
+      query && nonDataElements.some((el) => el.name.toLowerCase() === query);
 
     let html = filtered
       .map(
@@ -860,7 +858,9 @@ function wireElementCombobox(): void {
 }
 
 function wireUsesDataCombobox(): void {
-  const input = document.getElementById('req-uses-data') as HTMLInputElement | null;
+  const input = document.getElementById(
+    'req-uses-data',
+  ) as HTMLInputElement | null;
   const dropdown = document.getElementById('req-uses-data-dropdown');
   if (!input || !dropdown) return;
 
@@ -873,14 +873,11 @@ function wireUsesDataCombobox(): void {
 
     const query = input!.value.trim().toLowerCase();
     const filtered = query
-      ? recordTypes.filter((rt) =>
-          rt.displayName.toLowerCase().includes(query),
-        )
+      ? recordTypes.filter((rt) => rt.displayName.toLowerCase().includes(query))
       : recordTypes;
 
     const exactMatch =
-      query &&
-      recordTypes.some((rt) => rt.displayName.toLowerCase() === query);
+      query && recordTypes.some((rt) => rt.displayName.toLowerCase() === query);
 
     let html = filtered
       .map(
@@ -1126,7 +1123,9 @@ function buildRequirementFromForm(
       const usesDataName = usesDataEl?.value.trim() ?? '';
       if (usesDataName) {
         const usesDataTypeId = resolveOrCreateDataType(
-          usesDataName, wizardState, selectedUsesDataTypeId,
+          usesDataName,
+          wizardState,
+          selectedUsesDataTypeId,
         );
         base.usesDataTypeId = usesDataTypeId;
       }
@@ -1167,11 +1166,10 @@ function resolveOrCreateDataType(
   preselectedId?: string | null,
 ): string {
   // 1. If user selected an existing type via the combobox, use it
-  const selId = preselectedId !== undefined ? preselectedId : selectedDataTypeId;
+  const selId =
+    preselectedId !== undefined ? preselectedId : selectedDataTypeId;
   if (selId) {
-    const existing = wizardState.recordTypes.find(
-      (r) => r.id === selId,
-    );
+    const existing = wizardState.recordTypes.find((r) => r.id === selId);
     if (existing) return existing.id;
   }
 

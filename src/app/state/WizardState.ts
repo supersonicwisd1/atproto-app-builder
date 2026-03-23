@@ -3,6 +3,7 @@
  */
 
 import type { WizardState, LoadedState } from '../../types/wizard';
+import { generateId } from '../../utils/id';
 
 const STORAGE_KEY = 'atproto-wizard-state';
 const STALE_DAYS = 30;
@@ -41,7 +42,8 @@ export function initializeWizardState(): WizardState {
     },
     requirements: [],
     nonDataElements: [],
-    blocks: []
+    blocks: [],
+    views: [{ id: generateId(), name: 'Home', blockIds: [] }]
   };
 }
 
@@ -61,6 +63,10 @@ export function setWizardState(state: WizardState): void {
   // Migrate: ensure blocks array exists for old saved states
   if (!state.blocks) {
     state.blocks = [];
+  }
+  // Migrate: ensure views array exists with seeded Home view for old saved states
+  if (!state.views || state.views.length === 0) {
+    state.views = [{ id: generateId(), name: 'Home', blockIds: [] }];
   }
   // Migrate: ensure recordTypes have displayName and identity fields for old saved states
   if (state.recordTypes) {

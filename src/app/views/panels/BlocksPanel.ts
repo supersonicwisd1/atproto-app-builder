@@ -13,7 +13,7 @@
 
 import { getWizardState, saveWizardState } from '../../state/WizardState';
 import { generateId } from '../../../utils/id';
-import { updateAccordionSummaries, switchSection } from '../WorkspaceLayout';
+import { updateAccordionSummaries, switchSection, isNarrowViewport } from '../WorkspaceLayout';
 import {
   getDisplayText,
   getSidebarText,
@@ -653,10 +653,10 @@ export function updateBlocksSidebar(): void {
 // ── Re-render ────────────────────────────────────────────────────────
 
 function rerender(): void {
-  // Re-render the panel body
-  const body =
-    document.getElementById('workspace-panel-body') ??
-    document.querySelector('.accordion-section[data-section="components"] .accordion-body');
+  // Re-render into the visible container (accordion on narrow, workspace on wide)
+  const body = isNarrowViewport()
+    ? document.querySelector('.accordion-section[data-section="components"] .accordion-body')
+    : document.getElementById('workspace-panel-body');
 
   if (body) {
     body.innerHTML = renderBlocksPanel();

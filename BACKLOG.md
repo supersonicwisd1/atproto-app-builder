@@ -14,7 +14,7 @@ Pick one item from "Up Next" before starting a coding session.
 - [x] Phase 2: Data Panel (read-only cards) — see `.specs/done/data-panel-cards.md`
 - [x] Phase 3: Requirements Panel + delete Step 1 — see `.specs/active/requirements-panel.md`
 - [x] Phase 4: Blocks Panel — see `.specs/active/blocks-panel.md`
-- [ ] Phase 5: Views Panel
+- [x] Phase 5: Views Panel — see `.specs/active/views-panel.md`
 - [ ] Phase 6: Generate Flow (also: add next-step card to Views panel pointing to generate)
 - [ ] Phase 7: Navigation and History Rework
 - [ ] Phase 8: Cleanup (delete deprecated files, remove old CSS)

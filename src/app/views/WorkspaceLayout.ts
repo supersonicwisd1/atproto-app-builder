@@ -22,7 +22,7 @@ import {
 } from './panels/RequirementsPanel';
 import { renderDataPanel, wireDataPanel, resetDetailState } from './panels/DataPanel';
 import { renderBlocksPanel, wireBlocksPanel, updateBlocksSidebar } from './panels/BlocksPanel';
-import { renderViewsPanel } from './panels/ViewsPanel';
+import { renderViewsPanel, wireViewsPanel, updateViewsSidebar } from './panels/ViewsPanel';
 
 const SECTION_CONFIG: Record<
   SectionName,
@@ -43,7 +43,7 @@ const narrowQuery =
     : null;
 
 /** Whether the current viewport uses the accordion layout. */
-function isNarrowViewport(): boolean {
+export function isNarrowViewport(): boolean {
   return narrowQuery?.matches ?? false;
 }
 
@@ -157,6 +157,9 @@ export function switchSection(section: SectionName): void {
   } else if (section === 'components') {
     wireBlocksPanel();
     updateBlocksSidebar();
+  } else if (section === 'views') {
+    wireViewsPanel();
+    updateViewsSidebar();
   }
 
   // Always keep data sidebar in sync (RecordTypes may be seeded from requirements)
@@ -257,15 +260,32 @@ export function updateAccordionSummaries(): void {
     }
   }
 
-  // Views — no views array in WizardState yet, show placeholder
+  // Views
   const viewsSection = document.querySelector(
     '.accordion-section[data-section="views"]',
   );
   if (viewsSection) {
+    const viewCount = wizardState.views.length;
     const badge = viewsSection.querySelector('.accordion-badge');
-    if (badge) badge.textContent = '0';
+    if (badge) badge.textContent = String(viewCount);
+
     const summary = viewsSection.querySelector('.accordion-summary');
-    if (summary) summary.textContent = 'None yet';
+    if (summary) {
+      summary.textContent =
+        viewCount === 0
+          ? 'None yet'
+          : wizardState.views.map((v) => v.name).join(' · ');
+    }
+
+    // has-items: user has meaningfully engaged (more than 1 view OR any view has blocks)
+    const hasEngaged =
+      viewCount > 1 ||
+      wizardState.views.some((v) => v.blockIds.length > 0);
+    if (hasEngaged) {
+      viewsSection.classList.add('has-items');
+    } else {
+      viewsSection.classList.remove('has-items');
+    }
   }
 }
 
