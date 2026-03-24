@@ -15,7 +15,7 @@ Pick one item from "Up Next" before starting a coding session.
 - [x] Phase 3: Requirements Panel + delete Step 1 — see `.specs/done/requirements-panel.md`
 - [x] Phase 4: Blocks Panel — see `.specs/done/blocks-panel.md`
 - [x] Phase 5: Views Panel — see `.specs/done/views-panel.md`
-- [ ] Phase 6: Generate Flow (also: add next-step card to Views panel pointing to generate)
+- [x] Phase 6: Generate Flow — see `.specs/done/generate-panel.md`
 - [ ] Phase 7: Navigation and History Rework
 - [ ] Phase 8: Cleanup (delete deprecated files, remove old CSS)
       Full spec: `.specs/active/layout-migration-sidebar-workspace.md`

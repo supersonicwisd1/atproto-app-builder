@@ -118,29 +118,30 @@ See `requirements-panel.md` for full behavioral spec, including empty-state intr
 - [x] Add tests for RequirementsPanel
 - [x] Verify: can add/edit/delete requirements
 
-### Phase 4: Components Panel (new functionality)
+### Phase 4: Blocks Panel (was "Components Panel")
 
-- [ ] Design and implement the Components panel
-- [ ] Determine how components map to the state model (may need to extend `WizardState`)
-- [ ] Components should reference data types defined in the Data panel
-- [ ] Add tests for ComponentsPanel
-- [ ] Verify: can add/edit/delete components
+- [x] Design and implement the Blocks panel — see `.specs/done/blocks-panel.md`
+- [x] Determine how blocks map to the state model (extended `WizardState` with `blocks` array)
+- [x] Blocks reference data types defined in the Data panel
+- [x] Add tests for BlocksPanel
+- [x] Verify: can add/edit/delete blocks
 
-### Phase 5: Views Panel (new functionality)
+### Phase 5: Views Panel
 
-- [ ] Design and implement the Views panel
-- [ ] Views assemble components into page layouts
-- [ ] Include navigation flow definitions between views
-- [ ] Determine where App Config (primary record type, display fields) is captured — possibly here
-- [ ] Add tests for ViewsPanel
-- [ ] Verify: can add/edit/delete views
+- [x] Design and implement the Views panel — see `.specs/done/views-panel.md`
+- [x] Views assemble blocks into page layouts
+- [x] Include navigation flow definitions between views
+- [x] App Config (primary record type, display fields) auto-derived by generator — see `.specs/active/app-config-placement.md` for future overrides
+- [x] Add tests for ViewsPanel
+- [x] Verify: can add/edit/delete views
 
 ### Phase 6: Generate Flow
 
-- [ ] Decide on generate UX (sidebar section vs. top-level button vs. dialog)
-- [ ] Migrate review display from `deprecatedStep7Generate.ts` (lexicon preview, app summary)
-- [ ] Wire generate/download action
-- [ ] Verify: can generate and download app output from new layout
+- [x] Decide on generate UX → 5th sidebar section — see `.specs/active/generate-panel.md`
+- [x] Migrate review display from `deprecatedStep7Generate.ts` (lexicon preview, app summary)
+- [x] Wire generate/download action (ZIP download via existing ZipExporter flow)
+- [x] Add next-step card to Views panel pointing to Generate
+- [x] Verify: can generate and download app output from new layout
 
 ### Phase 7: Navigation and History Rework
 
