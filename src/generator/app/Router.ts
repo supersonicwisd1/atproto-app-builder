@@ -1,80 +1,61 @@
 /**
- * Navigation service generator
+ * Router generator
+ *
+ * Generates a Router class that switches between wizard-defined views.
+ * Replaces the old hardcoded NavigationManager.
  */
 
-import type { RecordType, AppConfig } from '../../types/wizard';
+import type { View } from '../../types/wizard';
 import { toPascalCase, toCamelCase } from '../../utils';
 
-export function generateNavigationTs(recordTypes: RecordType[], appConfig: AppConfig): string {
-  const primaryRecord = recordTypes.find(r => r.name === appConfig.primaryRecordType) || recordTypes[0];
-  const camelName = toCamelCase(primaryRecord.name);
+interface ViewEntry {
+  viewId: string;        // camelCase slug for use in router map
+  fileName: string;      // PascalCase filename (without extension)
+  functionName: string;  // render function name
+}
+
+/**
+ * Generate the Router class file.
+ */
+export function generateRouterTs(viewEntries: ViewEntry[]): string {
+  const imports = viewEntries
+    .map(v => `import { ${v.functionName} } from './views/${v.fileName}';`)
+    .join('\n');
+
+  const mapEntries = viewEntries
+    .map(v => `      ['${v.viewId}', { render: ${v.functionName} }]`)
+    .join(',\n');
 
   return `/**
- * Navigation manager for handling view transitions
+ * Router — switches between app views
  */
 
-import Store from './store';
-import { renderListView } from './components/RecordList';
-import { renderDetailView } from './components/RecordDetail';
-import { renderFormView } from './components/RecordForm';
+${imports}
 
-export class NavigationManager {
-  constructor() {}
+export class Router {
+  private activeViewId: string | null = null;
+  private container: HTMLElement;
+  private views: Map<string, { render: (container: HTMLElement, router: Router) => void }>;
 
-  private activateView(viewId: string): void {
-    const views = ['mainMenuView', 'listView', 'detailView', 'formView'];
-    views.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove('active');
-    });
-
-    const targetView = document.getElementById(viewId);
-    if (targetView) targetView.classList.add('active');
+  constructor() {
+    this.container = document.getElementById('appContent')!;
+    this.views = new Map([
+${mapEntries}
+    ]);
   }
 
-  showMainMenu(): void {
-    this.activateView('mainMenuView');
+  navigate(viewId: string): void {
+    this.container.innerHTML = '';
+    this.activeViewId = viewId;
+
+    const view = this.views.get(viewId);
+    if (view) {
+      view.render(this.container, this);
+    }
   }
 
-  showList(): void {
-    this.activateView('listView');
-
-    const container = document.getElementById('listView');
-    if (!container) return;
-
-    renderListView(container, Store.${camelName}s, {
-      onItemClick: (uri) => {
-        const item = Store.${camelName}s.find(i => i.uri === uri);
-        if (item) this.showDetail(item);
-      },
-      onBack: () => this.showMainMenu(),
-      onCreate: () => this.showForm(null),
-    });
-  }
-
-  showDetail(item: any): void {
-    this.activateView('detailView');
-
-    const container = document.getElementById('detailView');
-    if (!container) return;
-
-    renderDetailView(container, item, {
-      onBack: () => this.showList(),
-      onEdit: () => this.showForm(item),
-      onDelete: () => this.showList(),
-    });
-  }
-
-  showForm(item: any | null): void {
-    this.activateView('formView');
-
-    const container = document.getElementById('formView');
-    if (!container) return;
-
-    renderFormView(container, item, {
-      onSave: () => this.showList(),
-      onCancel: () => item ? this.showDetail(item) : this.showList(),
-    });
+  getActiveViewId(): string | null {
+    return this.activeViewId;
   }
 }
 `;

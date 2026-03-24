@@ -2,17 +2,9 @@
  * App entry point generator
  */
 
-import type { RecordType, AppConfig } from '../../types/wizard';
-import { toPascalCase } from '../../utils';
-
-export function generateAppTs(recordTypes: RecordType[], appConfig: AppConfig): string {
-  const primaryRecord = recordTypes.find(r => r.name === appConfig.primaryRecordType) || recordTypes[0];
-  const pascalName = toPascalCase(primaryRecord.name);
-
-  return `import Store from './store';
-import { NavigationManager } from './router';
+export function generateMainTs(firstViewId: string): string {
+  return `import { Router } from './router';
 import {
-  createButton,
   showLoadingScreen,
   showLoginScreen,
   showAppScreen,
@@ -29,17 +21,7 @@ import {
   signOut,
 } from './atproto/auth';
 
-declare global {
-  interface Window {
-    app: any;
-  }
-  var app: any;
-}
-
-window.app = {};
-app.store = Store;
-
-let navigationManager: NavigationManager;
+let router: Router;
 
 initOAuthClient();
 
@@ -98,7 +80,9 @@ async function initializeApp(): Promise<void> {
     showAppScreen();
     updateUserInfo();
     await loadUserData();
-    initializeMainMenu();
+
+    router = new Router();
+    router.navigate('${firstViewId}');
 
     if (result.state) {
       console.log(\`\${result.session.sub} was successfully authenticated\`);
@@ -108,26 +92,6 @@ async function initializeApp(): Promise<void> {
   } else {
     showLoginScreen();
   }
-}
-
-function initializeMainMenu(): void {
-  navigationManager = new NavigationManager();
-
-  const menuContainer = document.getElementById('menuContainer');
-  if (!menuContainer) return;
-
-  menuContainer.innerHTML = '';
-
-  const viewAllBtn = createButton('View All ${pascalName}s', 'primary', () => {
-    navigationManager.showList();
-  });
-
-  const createNewBtn = createButton('Create New ${pascalName}', 'primary', () => {
-    navigationManager.showForm(null);
-  });
-
-  menuContainer.appendChild(viewAllBtn);
-  menuContainer.appendChild(createNewBtn);
 }
 `;
 }

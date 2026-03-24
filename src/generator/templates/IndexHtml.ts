@@ -2,9 +2,9 @@
  * Index HTML generator
  */
 
-import type { AppInfo, RecordType, AppConfig } from '../../types/wizard';
+import type { AppInfo } from '../../types/wizard';
 
-export function generateIndexHtml(appInfo: AppInfo, recordTypes: RecordType[], appConfig: AppConfig): string {
+export function generateIndexHtml(appInfo: AppInfo): string {
   const appTitle = appInfo.appName;
 
   return `<!DOCTYPE html>
@@ -53,19 +53,7 @@ export function generateIndexHtml(appInfo: AppInfo, recordTypes: RecordType[], a
 
         <div id="appStatus" class="status">Ready!</div>
 
-        <!-- Main Menu View -->
-        <div id="mainMenuView" class="view-section active">
-          <div id="menuContainer"></div>
-        </div>
-
-        <!-- List View -->
-        <div id="listView" class="view-section"></div>
-
-        <!-- Detail View -->
-        <div id="detailView" class="view-section"></div>
-
-        <!-- Create/Edit Form View -->
-        <div id="formView" class="view-section"></div>
+        <div id="appContent"></div>
 
         <button id="logoutButton" class="secondary">Sign Out</button>
       </div>

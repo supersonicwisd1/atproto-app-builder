@@ -137,22 +137,81 @@ button.danger:hover {
   margin: 15px 0;
 }
 
-/* View sections */
-.view-section {
-  display: none;
-}
-
-.view-section.active {
-  display: block;
+/* App content area */
+#appContent {
   margin: 20px 0;
 }
 
-/* Menu container */
-#menuContainer {
+/* Nav menu */
+.nav-menu {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 20px 0;
+  gap: 4px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.nav-menu-item {
+  padding: 8px 16px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.nav-menu-item:hover {
+  background: #e0e0e0;
+}
+
+/* Block sections */
+.block {
+  margin-bottom: 16px;
+}
+
+/* Placeholder blocks */
+.block-placeholder {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fafafa;
+}
+
+.block-placeholder h3 {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.placeholder-type {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.placeholder-requirements {
+  margin: 0;
+  padding-left: 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+.placeholder-requirements li {
+  margin-bottom: 4px;
+}
+
+/* Empty view state */
+.view-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-style: italic;
 }
 
 /* List items */

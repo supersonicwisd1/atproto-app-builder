@@ -97,10 +97,13 @@ export interface NonDataElement {
   name: string; // human-readable label, e.g. "Timer"
 }
 
+export type BlockType = 'menu' | 'list' | 'detail' | 'form' | 'table' | 'card' | 'text';
+
 export interface Block {
   id: string;
   name: string; // user-given name, e.g. "Post Feed", "About Section"
   requirementIds: string[]; // ordered list of Requirement ids
+  blockType?: BlockType; // determines generator component rendering
 }
 
 export interface View {

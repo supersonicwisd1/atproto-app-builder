@@ -18,7 +18,7 @@ import {
   getDisplayText,
   getSidebarText,
 } from './RequirementsPanel';
-import type { Block, Requirement } from '../../../types/wizard';
+import type { Block, BlockType, Requirement } from '../../../types/wizard';
 
 // ── Module-level state ────────────────────────────────────────────────
 
@@ -27,14 +27,41 @@ let selectedReqIds: string[] = [];
 
 // ── Quick-create name options by requirement type ─────────────────────
 
-const QUICK_NAMES: Record<string, string[]> = {
-  know:     ['Paragraph', 'Section', 'Heading', 'Info Box', 'Banner'],
-  'do-data':    ['Form', 'List', 'Card', 'Table', 'Detail View'],
-  'do-element': ['Widget', 'Tool', 'Control'],
-  navigate: ['Link', 'Button', 'Menu Item', 'Tab'],
+interface QuickNameOption {
+  label: string;
+  blockType?: BlockType;
+}
+
+const QUICK_NAMES: Record<string, QuickNameOption[]> = {
+  know: [
+    { label: 'Paragraph', blockType: 'text' },
+    { label: 'Section', blockType: 'text' },
+    { label: 'Heading', blockType: 'text' },
+    { label: 'Info Box', blockType: 'text' },
+    { label: 'Banner', blockType: 'text' },
+  ],
+  'do-data': [
+    { label: 'Form', blockType: 'form' },
+    { label: 'List', blockType: 'list' },
+    { label: 'Card', blockType: 'card' },
+    { label: 'Table', blockType: 'table' },
+    { label: 'Detail View', blockType: 'detail' },
+  ],
+  'do-element': [
+    { label: 'Widget' },
+    { label: 'Tool' },
+    { label: 'Control' },
+  ],
+  navigate: [
+    { label: 'Menu', blockType: 'menu' },
+    { label: 'Link' },
+    { label: 'Button' },
+    { label: 'Menu Item' },
+    { label: 'Tab' },
+  ],
 };
 
-function getQuickNames(req: Requirement): string[] | null {
+function getQuickNames(req: Requirement): QuickNameOption[] | null {
   if (req.type === 'do') {
     if (req.interactionTarget === 'element') return null; // auto-name from element
     return QUICK_NAMES['do-data'];
@@ -77,8 +104,12 @@ function getRequirementShortText(req: Requirement): string {
           return 'Navigation menu';
         case 'forward-back':
           return `Fwd/back (${req.navControlType === 'buttons' ? 'buttons' : 'arrows'})`;
-        default:
-          return `${req.fromView ?? '?'} → ${req.toView ?? '?'}`;
+        default: {
+          const { views } = getWizardState();
+          const fromName = views.find(v => v.id === req.fromView)?.name ?? '?';
+          const toName = views.find(v => v.id === req.toView)?.name ?? '?';
+          return `${fromName} → ${toName}`;
+        }
       }
   }
 }
@@ -206,7 +237,7 @@ function renderUnassignedSection(unassigned: Requirement[]): string {
             <button class="quick-btn" data-req-id="${req.id}">+ Block</button>
             <div class="quick-create-dropdown" data-req-id="${req.id}">
               ${(quickNames ?? [])
-                .map((n) => `<button class="quick-create-option" data-name="${escapeHtml(n)}" data-req-id="${req.id}">${escapeHtml(n)}</button>`)
+                .map((n) => `<button class="quick-create-option" data-name="${escapeHtml(n.label)}"${n.blockType ? ` data-block-type="${n.blockType}"` : ''} data-req-id="${req.id}">${escapeHtml(n.label)}</button>`)
                 .join('')}
             </div>
           </div>`;
@@ -364,7 +395,8 @@ function handleUnassignedClick(e: Event): void {
     e.stopPropagation();
     const name = option.dataset.name!;
     const reqId = option.dataset.reqId!;
-    quickCreateBlock(name, reqId);
+    const blockType = option.dataset.blockType as BlockType | undefined;
+    quickCreateBlock(name, reqId, blockType);
     return;
   }
 
@@ -563,12 +595,13 @@ function deleteBlock(blockId: string): void {
   rerender();
 }
 
-function quickCreateBlock(name: string, reqId: string): void {
+function quickCreateBlock(name: string, reqId: string, blockType?: BlockType): void {
   const state = getWizardState();
   const block: Block = {
     id: generateId(),
     name,
     requirementIds: [reqId],
+    ...(blockType && { blockType }),
   };
   state.blocks.push(block);
   saveWizardState(state);
