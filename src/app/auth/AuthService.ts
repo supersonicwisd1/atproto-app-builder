@@ -38,9 +38,9 @@ export async function initOAuthClient(): Promise<void> {
       clientMetadata: atprotoLoopbackClientMetadata(config.oauth.clientId),
     });
   } else {
-    oauthClient = new BrowserOAuthClient({
+    oauthClient = await BrowserOAuthClient.load({
+      clientId: config.oauth.clientId,
       handleResolver: config.oauth.handleResolver,
-      clientMetadata: undefined as any, // prod uses client_id URL auto-discovery
     });
   }
 }
