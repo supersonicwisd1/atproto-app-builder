@@ -45,6 +45,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === '/client-metadata.json') {
+      return handleClientMetadata(url);
+    }
+
     if (url.pathname === '/api/publish' && request.method === 'POST') {
       return handlePublish(request, env);
     }
@@ -59,6 +63,28 @@ export default {
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;
+
+function handleClientMetadata(url: URL): Response {
+  const origin = `${url.protocol}//${url.host}`;
+  const metadata = {
+    client_id: `${origin}/client-metadata.json`,
+    client_name: 'AT Protocol App Wizard',
+    client_uri: origin,
+    redirect_uris: [origin],
+    grant_types: ['authorization_code', 'refresh_token'],
+    response_types: ['code'],
+    scope: 'atproto transition:generic',
+    token_endpoint_auth_method: 'none',
+    application_type: 'web',
+    dpop_bound_access_tokens: true,
+  };
+  return new Response(JSON.stringify(metadata), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600',
+    },
+  });
+}
 
 function corsHeaders(): Record<string, string> {
   return {
