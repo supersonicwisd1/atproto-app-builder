@@ -150,8 +150,9 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
       const record = await loadProject(selectedRkey);
       setWizardState(record.wizardState);
       setActiveProjectRkey(record.rkey);
-      setLastPdsSaveTimestamp(record.updatedAt);
       saveWizardState(record.wizardState); // Update localStorage
+      // Set PDS timestamp AFTER saveWizardState so it matches state.lastSaved
+      setLastPdsSaveTimestamp(record.wizardState.lastSaved);
       closePicker();
       reloadUI();
     } catch (err: any) {
@@ -186,7 +187,7 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
       const state = getWizardState();
       const rkey = await saveProject(state, getActiveProjectRkey());
       setActiveProjectRkey(rkey);
-      setLastPdsSaveTimestamp(new Date().toISOString());
+      setLastPdsSaveTimestamp(getWizardState().lastSaved);
       // Refresh the dialog
       closePicker();
       openProjectPicker();

@@ -68,7 +68,7 @@ async function executeSave(silent: boolean): Promise<void> {
   try {
     const rkey = await saveProject(state, getActiveProjectRkey());
     setActiveProjectRkey(rkey);
-    setLastPdsSaveTimestamp(new Date().toISOString());
+    setLastPdsSaveTimestamp(state.lastSaved);
     setSaveState('success');
 
     // Revert to default after 2 seconds
