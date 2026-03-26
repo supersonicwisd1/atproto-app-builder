@@ -9,6 +9,7 @@ import { renderCurrentStep } from '../views/StepRenderer';
 import { generateApp } from '../export/OutputGenerator';
 import { pushStepToHistory, guardedLeaveWizard } from './HistoryManager';
 import { transitionToWizard } from '../views/WorkspaceLayout';
+import { promptForAppName } from '../dialogs/AppNameDialog';
 
 const STEP_NAMES = [
   'App Information',
@@ -20,7 +21,7 @@ const STEP_NAMES = [
   'Generate App',
 ];
 
-export function goToNextStep(): void {
+export async function goToNextStep(): Promise<void> {
   const wizardState = getWizardState();
   const errors = validateCurrentStep();
 
@@ -32,6 +33,13 @@ export function goToNextStep(): void {
   collectCurrentStepData();
 
   if (wizardState.currentStep === 0) {
+    // Prompt for app name before entering the wizard (if not already set)
+    if (!wizardState.appInfo.appName.trim()) {
+      const name = await promptForAppName();
+      if (!name) return; // User cancelled
+      wizardState.appInfo.appName = name;
+    }
+
     // Animated transition from landing to wizard
     transitionToWizard(() => {
       wizardState.currentStep = 2;

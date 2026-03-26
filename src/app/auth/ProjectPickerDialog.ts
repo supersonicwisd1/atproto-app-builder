@@ -5,6 +5,7 @@
  */
 
 import { listProjects, loadProject, deleteProject, saveProject } from '../services/ProjectService';
+import { promptForAppName } from '../dialogs/AppNameDialog';
 import type { ProjectSummary } from '../services/ProjectService';
 import {
   getWizardState,
@@ -17,7 +18,7 @@ import {
   setActiveProjectRkey,
   setLastPdsSaveTimestamp,
 } from '../state/WizardState';
-import { switchSection } from '../views/WorkspaceLayout';
+import { switchSection, updateAppNameInputs } from '../views/WorkspaceLayout';
 import { renderCurrentStep } from '../views/StepRenderer';
 import { updateProgressBar } from '../navigation/StepNavigation';
 import { updateSaveButtonVisibility } from '../services/PdsSaveController';
@@ -156,13 +157,20 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
   });
 
   // Start new project
-  dialogEl.querySelector('#picker-new')?.addEventListener('click', () => {
+  dialogEl.querySelector('#picker-new')?.addEventListener('click', async () => {
+    closePicker();
+    const name = await promptForAppName();
+    if (!name) {
+      // User cancelled — reopen the picker
+      openProjectPicker();
+      return;
+    }
     const freshState = initializeWizardState();
+    freshState.appInfo.appName = name;
     setWizardState(freshState);
     setActiveProjectRkey(null);
     setLastPdsSaveTimestamp(null);
     saveWizardState(freshState);
-    closePicker();
     reloadUI();
   });
 
@@ -279,6 +287,7 @@ function reloadUI(): void {
     renderCurrentStep();
     updateProgressBar();
   }
+  updateAppNameInputs();
   updateSaveButtonVisibility();
 }
 

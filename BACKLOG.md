@@ -62,6 +62,7 @@ Pick one item from "Up Next" before starting a coding session.
 - [x] Navigation subtypes — see `.specs/done/navigation-subtypes.md` 3/17/26
 - [x] Data type identity — lexicon config & discovery — see `.specs/done/data-type-identity.md` 3/20/26
 - [x] Data type fields — see `.specs/done/data-type-fields.md` 3/20/26
+- [x] Early app name prompt + sidebar display — see `.specs/done/app-name-early-prompt.md` 3/25/26
 - [x] Lexicon publishing (PDS writes + DNS) — see `.specs/done/lexicon-publishing.md` 3/24/26
 - [x] Requirements navigation wiring — see `.specs/done/requirements-navigation-wiring.md` 3/23/26
 - [x] Non-data interactive elements — see `.specs/done/non-data-elements.md` 3/21/26

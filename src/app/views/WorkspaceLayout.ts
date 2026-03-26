@@ -95,6 +95,9 @@ export function wireWorkspaceLayout(): void {
   // Keep progress fill in sync on resize
   window.addEventListener('resize', updateProgressFill);
 
+  // Wire app name inputs (sidebar + accordion) and populate from state
+  wireAppNameInputs();
+
   // Show/hide PDS save button and wire click handlers
   // (needed here because the workspace DOM may render after login)
   updateSaveButtonVisibility();
@@ -439,4 +442,55 @@ export function transitionToLanding(onMidpoint: () => void): void {
       overlay.classList.remove('active');
     }, 100);
   }, 300);
+}
+
+// --- App name inputs (sidebar + accordion) ---
+
+const APP_NAME_IDS = ['sidebar-app-name-input', 'accordion-app-name-input'];
+
+/**
+ * Populate and wire the app name inputs. Call once after workspace HTML is in DOM.
+ */
+function wireAppNameInputs(): void {
+  const appName = getWizardState().appInfo.appName;
+
+  for (const id of APP_NAME_IDS) {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (!input) continue;
+
+    input.value = appName;
+
+    input.addEventListener('input', () => {
+      const state = getWizardState();
+      state.appInfo.appName = input.value;
+      saveWizardState(state);
+
+      // Keep the other input in sync
+      syncAppNameInputs(id, input.value);
+
+      // Update Generate panel sidebar summary
+      updateAccordionSummaries();
+    });
+  }
+}
+
+/** Keep both app name inputs in sync when one changes. */
+function syncAppNameInputs(sourceId: string, value: string): void {
+  for (const id of APP_NAME_IDS) {
+    if (id === sourceId) continue;
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (input) input.value = value;
+  }
+}
+
+/**
+ * Update app name inputs from current state. Call after loading a project
+ * or switching projects to reflect the new appInfo.appName.
+ */
+export function updateAppNameInputs(): void {
+  const appName = getWizardState().appInfo.appName;
+  for (const id of APP_NAME_IDS) {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (input) input.value = appName;
+  }
 }

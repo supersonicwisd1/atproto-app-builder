@@ -1,5 +1,9 @@
 <!-- Sidebar (fixed-position, slides in when state-wizard) -->
 <aside class="sidebar" id="workspace-sidebar">
+  <div class="sidebar-app-name">
+    <input type="text" id="sidebar-app-name-input" class="sidebar-app-name-input"
+      placeholder="App name">
+  </div>
   <div class="sidebar-nav" id="sidebar-nav">
     <div class="progress-fill" id="sidebar-progress-fill"></div>
 
@@ -81,6 +85,10 @@
 
 <!-- Accordion layout (visible below 768px, replaces sidebar + workspace) -->
 <div class="accordion" id="workspace-accordion">
+  <div class="accordion-app-name">
+    <input type="text" id="accordion-app-name-input" class="sidebar-app-name-input"
+      placeholder="App name">
+  </div>
   <div class="accordion-section active" data-section="requirements">
     <div class="accordion-header" data-target="requirements">
       <div class="accordion-dot"></div>

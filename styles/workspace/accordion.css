@@ -144,6 +144,12 @@
       margin-left: 0;
     }
 
+    /* Accordion app name */
+    .accordion-app-name {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
     /* Accordion save button (below all accordion sections) */
     .accordion-save {
       padding: 1rem;
