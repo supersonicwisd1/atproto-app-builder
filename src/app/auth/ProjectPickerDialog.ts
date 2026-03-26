@@ -17,6 +17,8 @@ import {
   getActiveProjectRkey,
   setActiveProjectRkey,
   setLastPdsSaveTimestamp,
+  snapshotPdsContent,
+  clearPdsContentSnapshot,
 } from '../state/WizardState';
 import { switchSection, updateAppNameInputs, transitionToWizard } from '../views/WorkspaceLayout';
 import { renderCurrentStep } from '../views/StepRenderer';
@@ -151,8 +153,8 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
       setWizardState(record.wizardState);
       setActiveProjectRkey(record.rkey);
       saveWizardState(record.wizardState); // Update localStorage
-      // Set PDS timestamp AFTER saveWizardState so it matches state.lastSaved
       setLastPdsSaveTimestamp(record.wizardState.lastSaved);
+      snapshotPdsContent(record.wizardState);
       closePicker();
       reloadUI();
     } catch (err: any) {
@@ -174,6 +176,7 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
     setWizardState(freshState);
     setActiveProjectRkey(null);
     setLastPdsSaveTimestamp(null);
+    clearPdsContentSnapshot();
     saveWizardState(freshState);
     reloadUI();
   });
@@ -187,7 +190,9 @@ function wirePickerEvents(projects: ProjectSummary[]): void {
       const state = getWizardState();
       const rkey = await saveProject(state, getActiveProjectRkey());
       setActiveProjectRkey(rkey);
-      setLastPdsSaveTimestamp(getWizardState().lastSaved);
+      const currentState = getWizardState();
+      setLastPdsSaveTimestamp(currentState.lastSaved);
+      snapshotPdsContent(currentState);
       // Refresh the dialog
       closePicker();
       openProjectPicker();
@@ -250,6 +255,7 @@ function showDeleteConfirmation(rkey: string, name: string): void {
       if (getActiveProjectRkey() === rkey) {
         setActiveProjectRkey(null);
         setLastPdsSaveTimestamp(null);
+        clearPdsContentSnapshot();
       }
       // Refresh the picker
       closePicker();

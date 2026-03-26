@@ -9,6 +9,8 @@ import {
   getLastPdsSaveTimestamp,
   setLastPdsSaveTimestamp,
   hasUnsavedPdsChanges,
+  snapshotPdsContent,
+  clearPdsContentSnapshot,
   setWizardState,
   initializeWizardState,
   getWizardState,
@@ -20,6 +22,7 @@ describe('WizardState PDS tracking', () => {
     setLoggedIn(false);
     setActiveProjectRkey(null);
     setLastPdsSaveTimestamp(null);
+    clearPdsContentSnapshot();
     setWizardState(initializeWizardState());
     localStorage.clear();
   });
@@ -79,37 +82,48 @@ describe('WizardState PDS tracking', () => {
 
     it('returns true when logged in with meaningful state and never saved to PDS', () => {
       setLoggedIn(true);
-      setLastPdsSaveTimestamp(null);
       const state = getWizardState();
       state.appInfo.appName = 'My App';
       expect(hasUnsavedPdsChanges()).toBe(true);
     });
 
-    it('returns false when logged in and lastSaved equals PDS timestamp', () => {
+    it('returns false when content matches PDS snapshot', () => {
       setLoggedIn(true);
       const state = getWizardState();
       state.appInfo.appName = 'My App';
-      const ts = '2026-03-25T12:00:00.000Z';
-      state.lastSaved = ts;
-      setLastPdsSaveTimestamp(ts);
+      // Simulate a PDS save — snapshot current content
+      snapshotPdsContent(state);
       expect(hasUnsavedPdsChanges()).toBe(false);
     });
 
-    it('returns true when localStorage is newer than PDS save', () => {
+    it('returns false after snapshot even if lastSaved timestamp changes', () => {
       setLoggedIn(true);
       const state = getWizardState();
       state.appInfo.appName = 'My App';
-      setLastPdsSaveTimestamp('2026-03-25T10:00:00.000Z');
-      state.lastSaved = '2026-03-25T12:00:00.000Z';
+      snapshotPdsContent(state);
+      // Simulate a localStorage re-save (bumps lastSaved but no content change)
+      state.lastSaved = new Date().toISOString();
+      expect(hasUnsavedPdsChanges()).toBe(false);
+    });
+
+    it('returns true when content differs from PDS snapshot', () => {
+      setLoggedIn(true);
+      const state = getWizardState();
+      state.appInfo.appName = 'My App';
+      snapshotPdsContent(state);
+      // Now change actual content
+      state.appInfo.appName = 'My App v2';
       expect(hasUnsavedPdsChanges()).toBe(true);
     });
 
-    it('returns false when PDS save is newer than localStorage', () => {
+    it('returns false after clearing snapshot with no meaningful state', () => {
       setLoggedIn(true);
       const state = getWizardState();
       state.appInfo.appName = 'My App';
-      setLastPdsSaveTimestamp('2026-03-25T14:00:00.000Z');
-      state.lastSaved = '2026-03-25T12:00:00.000Z';
+      snapshotPdsContent(state);
+      clearPdsContentSnapshot();
+      // Reset to empty state — no meaningful data
+      state.appInfo.appName = '';
       expect(hasUnsavedPdsChanges()).toBe(false);
     });
   });

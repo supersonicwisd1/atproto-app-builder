@@ -14,9 +14,11 @@ export let currentEditingId: string | null = null;
 // --- PDS project tracking (persisted in localStorage) ---
 const ACTIVE_RKEY_KEY = 'atproto-wizard-active-rkey';
 const LAST_PDS_SAVE_KEY = 'atproto-wizard-last-pds-save';
+const PDS_CONTENT_HASH_KEY = 'atproto-wizard-pds-content-hash';
 
 let activeProjectRkey: string | null = localStorage.getItem(ACTIVE_RKEY_KEY);
 let lastPdsSaveTimestamp: string | null = localStorage.getItem(LAST_PDS_SAVE_KEY);
+let lastPdsContentHash: string | null = localStorage.getItem(PDS_CONTENT_HASH_KEY);
 let _isLoggedIn = false;
 
 export function getActiveProjectRkey(): string | null {
@@ -45,6 +47,29 @@ export function setLastPdsSaveTimestamp(ts: string | null): void {
   }
 }
 
+/**
+ * Serialize the content-bearing fields of a WizardState (excluding lastSaved)
+ * into a stable string for comparison.
+ */
+export function getContentFingerprint(state: WizardState): string {
+  const { lastSaved: _, ...content } = state;
+  return JSON.stringify(content);
+}
+
+/**
+ * Snapshot the current state content so we can detect real changes later.
+ * Call this after every successful PDS save or load.
+ */
+export function snapshotPdsContent(state: WizardState): void {
+  lastPdsContentHash = getContentFingerprint(state);
+  localStorage.setItem(PDS_CONTENT_HASH_KEY, lastPdsContentHash);
+}
+
+export function clearPdsContentSnapshot(): void {
+  lastPdsContentHash = null;
+  localStorage.removeItem(PDS_CONTENT_HASH_KEY);
+}
+
 export function setLoggedIn(loggedIn: boolean): void {
   _isLoggedIn = loggedIn;
 }
@@ -55,19 +80,19 @@ export function isLoggedIn(): boolean {
 
 /**
  * Check if the current project has unsaved PDS changes.
- * True if: logged in AND (never saved to PDS with meaningful state, OR
- * localStorage has been updated since the last PDS save).
+ * Compares actual content (not timestamps) against the last PDS save snapshot.
  */
 export function hasUnsavedPdsChanges(): boolean {
   if (!_isLoggedIn) return false;
   const state = wizardState;
   if (!state) return false;
 
-  if (!lastPdsSaveTimestamp) {
+  // Never saved to PDS — only flag if there's meaningful content
+  if (!lastPdsContentHash) {
     return hasMeaningfulState(state);
   }
 
-  return new Date(state.lastSaved).getTime() > new Date(lastPdsSaveTimestamp).getTime();
+  return getContentFingerprint(state) !== lastPdsContentHash;
 }
 
 /** Callback invoked after every localStorage save to trigger PDS auto-save. */

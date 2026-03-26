@@ -11,6 +11,7 @@ import {
   getActiveProjectRkey,
   setActiveProjectRkey,
   setLastPdsSaveTimestamp,
+  snapshotPdsContent,
   isLoggedIn,
   hasMeaningfulState,
 } from '../state/WizardState';
@@ -69,6 +70,7 @@ async function executeSave(silent: boolean): Promise<void> {
     const rkey = await saveProject(state, getActiveProjectRkey());
     setActiveProjectRkey(rkey);
     setLastPdsSaveTimestamp(state.lastSaved);
+    snapshotPdsContent(state);
     setSaveState('success');
 
     // Revert to default after 2 seconds

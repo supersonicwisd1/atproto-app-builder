@@ -33,6 +33,7 @@ vi.mock('../../src/app/state/WizardState', () => ({
   getActiveProjectRkey: () => mockState._rkey,
   setActiveProjectRkey: (v: string | null) => { mockState._rkey = v; },
   setLastPdsSaveTimestamp: (v: string | null) => { mockState._lastTs = v; },
+  snapshotPdsContent: () => {},
 }));
 
 import {
