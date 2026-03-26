@@ -15,6 +15,11 @@
     font-family: dirty-ego;
     src: url(../fonts/DirtyEgo/Truetype/DIRTYEGO.TTF);
   }
+  @supports (-webkit-text-stroke: 1px transparent) {
+    h1, h2, [style*="dirty-ego"] {
+      -webkit-text-stroke: 0.4px currentColor;
+    }
+  }
   @font-face {
     font-family: fira-sans;
     src: url(../fonts/FiraSans/FiraSans-Medium.otf);
