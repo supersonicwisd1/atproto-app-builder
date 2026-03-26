@@ -58,6 +58,15 @@
       </div>
     </div>
   </div>
+
+  <!-- PDS save button (hidden when logged out, shown via JS) -->
+  <div class="sidebar-save" id="sidebar-save" hidden>
+    <button class="sidebar-save-btn" id="sidebar-save-btn">
+      <span class="save-icon">&#9729;</span>
+      Save to PDS
+    </button>
+    <div class="sidebar-save-status" id="sidebar-save-status"></div>
+  </div>
 </aside>
 
 <!-- Workspace content area (shifts right when sidebar is visible) -->
@@ -145,5 +154,14 @@
     <div class="accordion-body">
       <!-- Panel content rendered dynamically -->
     </div>
+  </div>
+
+  <!-- PDS save button for narrow layout (hidden when logged out, shown via JS) -->
+  <div class="accordion-save" id="accordion-save" hidden>
+    <button class="sidebar-save-btn" id="accordion-save-btn">
+      <span class="save-icon">&#9729;</span>
+      Save to PDS
+    </button>
+    <div class="sidebar-save-status" id="accordion-save-status"></div>
   </div>
 </div>

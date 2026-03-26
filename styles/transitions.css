@@ -16,32 +16,4 @@
     pointer-events: all;
   }
 
-  /* --- Back to landing button --- */
-
-  .back-to-landing {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-muted);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    z-index: 60;
-    transition:
-      color 0.2s,
-      border-color 0.2s;
-    display: none;
-  }
-
-  .state-wizard .back-to-landing {
-    display: block;
-  }
-
-  .back-to-landing:hover {
-    color: var(--accent);
-    border-color: var(--border-accent);
-  }
 }

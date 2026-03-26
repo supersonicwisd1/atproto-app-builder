@@ -11,6 +11,10 @@ Save and load wizard projects to/from the authenticated user's PDS as AT Protoco
 
 Currently wizard state is only persisted in localStorage, which is device-specific and fragile. Saving to a user's PDS makes their work portable across devices, recoverable after clearing browser data, and consistent with the AT Protocol ecosystem the wizard is designed to serve. Multi-project support is essential — without it, starting a new project means losing the old one.
 
+## Mockup
+
+See `mockups/8-pds-projects.html` for visual reference of all UI elements described below.
+
 ## Lexicon Design
 
 **Collection NSID:** `com.thelexfiles.appwizard.project`
@@ -47,7 +51,7 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 
 ## Acceptance Criteria
 
-- [ ] **PDS write access verified** — Before building the full feature, confirm that the authenticated OAuth session (scope `atproto transition:generic`) can successfully perform `createRecord`, `getRecord`, `listRecords`, and `deleteRecord` on the user's own repo. This is a prerequisite — if writes fail, the scope or session setup must be fixed first.
+- [x] **PDS write access verified** — The authenticated OAuth session (scope `atproto transition:generic`) can successfully perform `createRecord`, `getRecord`, `listRecords`, and `deleteRecord` on the user's own repo. Verified 2026-03-25 in production.
 
 - [ ] **Lexicon published** — `com.thelexfiles.appwizard.project` lexicon is published to the protopunx PDS (via the existing publish infrastructure or manually) so the schema is discoverable.
 
@@ -66,47 +70,60 @@ Currently wizard state is only persisted in localStorage, which is device-specif
   - Neither value is persisted in localStorage or WizardState — they are session-only state.
   - **Unsaved changes detection:** The project has unsaved PDS changes if `lastPdsSaveTimestamp` is null and `hasMeaningfulState()` is true, OR if `lastPdsSaveTimestamp` is older than `wizardState.lastSaved` (meaning localStorage has been updated since the last PDS save).
 
-- [ ] **Save to PDS** — Logged-in users can save the current project to their PDS.
-  - The header area (near the auth controls) shows a "Save" button when the user is logged in and the current project has meaningful state.
-  - Clicking "Save" saves the current WizardState to PDS:
-    - If `activeProjectRkey` is set, it updates the existing record (putRecord).
-    - If `activeProjectRkey` is null, it creates a new record (createRecord) and sets `activeProjectRkey` to the returned rkey.
-  - `projectName` is derived from `appInfo.appName`. If blank, use "Untitled Project".
-  - While saving, the button shows a brief spinner/disabled state. On success, show a brief "Saved to PDS" confirmation (similar to the existing "Progress saved!" pattern). On failure, show an error message.
-  - On successful PDS save, `lastPdsSaveTimestamp` is updated.
-  - When logged in, the "Progress saved!" localStorage indicator is suppressed — the PDS save confirmation is the only save feedback. When logged out, localStorage save feedback remains as-is.
+- [ ] **Username dropdown menu** — When logged in, the header nav shows the username as a clickable dropdown trigger (same behavior on all screen sizes, no separate mobile/desktop layout).
+  - Clicking the username toggles a dropdown with two items: "My Projects" and "Log out".
+  - A small down-caret indicator (▾) appears after the username to signal it is interactive.
+  - Clicking outside the dropdown or clicking an item closes it.
+  - When logged out, the header shows the existing "Log in" button (no change).
 
-- [ ] **Project picker dialog on login** — After a successful login, if the user has saved projects on their PDS, a project picker dialog appears.
-  - After `completeLogin()` succeeds, call `listProjects()`.
-  - If the user has 0 saved projects, skip the dialog — proceed as today.
-  - If the user has 1+ saved projects, show a modal dialog with:
-    - A heading: "Your Projects"
-    - A list of saved projects, each showing: project name, last updated date (human-readable relative or absolute). Sorted by `updatedAt` descending (most recent first).
-    - Each project row is clickable/selectable.
-    - A "Load Selected" button (or clicking the row directly loads it).
-    - A "Continue Without Loading" button that dismisses the dialog and keeps whatever is in localStorage.
-    - A "Start New Project" button that clears current state and initializes fresh.
-  - **Unsaved local work protection:** If localStorage has meaningful state that has never been saved to PDS (`activeProjectRkey` is null), the dialog shows a warning: "You have an unsaved local project" with a "Save Current Project First" option before allowing load or new project actions.
-  - When a project is loaded from PDS:
-    - The WizardState is deserialized, run through `setWizardState()` (which handles migration), and becomes the active state.
-    - `activeProjectRkey` is set.
-    - `lastPdsSaveTimestamp` is set to the record's `updatedAt`.
-    - localStorage is updated with this state (so it becomes the working copy).
-    - The UI re-renders to reflect the loaded state.
+- [ ] **Save button in sidebar / below accordions** — A "Save to PDS" button is shown when the user is logged in and the current project has meaningful state.
+  - **Wide layout (sidebar visible):** The save button is pinned to the bottom of the sidebar, below the section nav, separated by a top border. Below the button, a status line shows "Last saved X ago" or similar.
+  - **Narrow layout (accordion):** The save button appears below all accordion sections, styled the same.
+  - The button shows contextual states:
+    - **Default:** "Save to PDS" with a cloud icon.
+    - **Saving:** "Saving…" with disabled/dimmed state.
+    - **Success:** "Saved!" with green styling (brief flash, reverts to default after ~2 seconds).
+    - **Error:** "Save failed" with red styling + status text "Check connection".
+  - The save button is hidden when logged out.
 
-- [ ] **"My Projects" button** — A persistent button in the header (visible when logged in) opens the project picker dialog at any time.
-  - Placed in the header auth area, between the username and "Log out" link. Text: "My Projects".
-  - Clicking it opens the same project picker dialog as on login.
-  - If the current project has unsaved PDS changes (detected via the timestamp comparison described above), the dialog shows: "You have unsaved changes in your current project" with a "Save First" option.
-  - The dialog also shows a "Delete" action for each project. Deletion requires typing the project name to confirm.
+- [ ] **Auto-save to PDS** — When logged in, the project is automatically saved to PDS on meaningful events, with a brief "Saved!" indicator on the sidebar/accordion save button.
+  - **Auto-save triggers:**
+    - Switching between panels (sidebar section click or accordion toggle).
+    - Creating a card (requirement, data type, block, view).
+    - Updating a card (saving edits to any existing item).
+  - Auto-saves are silent on success (brief "Saved!" flash on the save button, no modal or toast). On failure, the save button shows the error state but does not interrupt the user's workflow.
+  - Auto-save is debounced — if multiple triggers fire in quick succession, only one PDS save occurs.
+  - localStorage auto-save continues unchanged alongside PDS auto-save.
+
+- [ ] **Project picker dialog** — A modal dialog for listing, loading, and managing saved PDS projects.
+  - Triggered on login (if user has 1+ saved projects) or via the "My Projects" item in the username dropdown.
+  - Shows a heading "Your Projects" with a list of saved projects: project name, last updated date (human-readable relative or absolute), sorted by `updatedAt` descending.
+  - The currently-loaded project (if any) is highlighted with a "current" badge.
+  - Each project row is clickable to select it.
+  - Buttons: "Load Selected", "Start New Project" (secondary style).
+  - "Continue without loading" link at bottom to dismiss.
+  - Each project has a delete button (×) that opens a delete confirmation sub-dialog.
+  - **Unsaved local work protection:** If the current project has unsaved PDS changes (detected via timestamp comparison), the dialog shows a yellow warning: "Unsaved changes. Your current project has changes that haven't been saved to your PDS." with a "Save Current Project First" button.
+  - **On load:** WizardState is deserialized, run through `setWizardState()` (handles migration), `activeProjectRkey` and `lastPdsSaveTimestamp` set, localStorage updated, UI re-renders.
+  - **Empty state:** If no saved projects, show "No saved projects yet. Use the Save to PDS button in the sidebar to save your current project." with "Start New Project" and "Close" options.
+
+- [ ] **Delete confirmation** — Deleting a project requires typing the project name to confirm.
+  - Shows project name prominently, warns it cannot be undone.
+  - Delete button is disabled until the typed text matches the project name exactly.
+  - On confirm, `deleteRecord` is called. Project removed from list. If it was the active project, `activeProjectRkey` and `lastPdsSaveTimestamp` are set to null.
 
 - [ ] **Auto-save to PDS on generate** — When a logged-in user generates/downloads their app (ZIP or GitHub export), the project is automatically saved to PDS if it hasn't been saved yet or has changes.
   - This happens after successful generation, not before (so it doesn't block the download).
   - If save fails, show a non-blocking warning but don't prevent the download.
 
+- [ ] **Remove "Back to intro" button** — The `#back-to-landing` button and its wiring are removed.
+  - Remove the button element from `index.html`.
+  - Remove the event listener setup from `Initialization.ts`.
+  - Remove associated CSS.
+
 - [ ] **Logged-out experience unchanged** — Users who are not logged in see no PDS-related UI.
-  - No "Save" button, no "My Projects" button, no project picker.
-  - localStorage auto-save continues as the only persistence mechanism.
+  - No save button in sidebar/accordion, no username dropdown, no project picker.
+  - localStorage auto-save continues as the only persistence mechanism with "Progress saved!" indicator.
   - The wizard is fully functional without login — PDS persistence is purely additive.
 
 - [ ] **Record size limit handling** — If `wizardState` serialized JSON exceeds 500KB (the `maxLength`), the save operation fails with a user-facing message: "This project is too large to save to your PDS. You can continue working locally." The localStorage save is unaffected.
@@ -114,16 +131,18 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 ## Scope
 
 **In scope:**
-- Verify PDS write access with current OAuth scope (prerequisite)
+- Verify PDS write access with current OAuth scope (done)
 - Lexicon schema for wizard project records
 - PDS read/write service module (CRUD operations)
+- Username dropdown menu (replaces inline header auth links)
+- Save button at bottom of sidebar (wide) / below accordions (narrow)
+- Auto-save on panel switch, card create, card update
 - Project picker dialog (list, load, delete with name-confirmation)
-- Save button in header
-- "My Projects" button in header
 - Auto-save to PDS on generate
 - Active project rkey and last-save timestamp tracking
 - Unsaved changes detection (timestamp comparison)
 - Unsaved local work protection on project switch/load
+- Remove "Back to intro" button
 - Record size limit handling
 - Error handling for all PDS operations (network failures, auth expiry)
 
@@ -141,14 +160,23 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 
 - `src/app/services/ProjectService.ts` — **new** — PDS CRUD operations for project records
 - `src/app/state/WizardState.ts` — add `activeProjectRkey` and `lastPdsSaveTimestamp` tracking, suppress localStorage save indicator when logged in
-- `src/app/auth/HeaderAuth.ts` — add "Save" and "My Projects" buttons to logged-in header
+- `src/app/auth/HeaderAuth.ts` — replace logged-in layout with username dropdown trigger + dropdown menu
 - `src/app/auth/ProjectPickerDialog.ts` — **new** — project picker dialog UI and event wiring
-- `src/app/bootstrap/Initialization.ts` — hook project picker into post-login flow
+- `src/app/bootstrap/Initialization.ts` — hook project picker into post-login flow, remove "Back to intro" wiring
 - `src/app/views/panels/GeneratePanel.ts` — add auto-save-to-PDS after generation
-- `src/app/auth/AuthService.ts` — expose `getAgent()` for PDS operations (currently Agent is created ad-hoc in `getUserProfile()`)
+- `src/app/views/panels/DataPanel.ts` — add auto-save trigger on card create/update
+- `src/app/views/panels/RequirementsPanel.ts` — add auto-save trigger on card create/update
+- `src/app/views/panels/BlocksPanel.ts` — add auto-save trigger on card create/update
+- `src/app/views/panels/ViewsPanel.ts` — add auto-save trigger on card create/update
+- `src/app/views/WorkspaceLayout.ts` — add auto-save trigger on panel switch
+- `src/app/auth/AuthService.ts` — expose `getAgent()` for PDS operations (already added)
 - `src/types/wizard.ts` — possibly add a `ProjectMetadata` type for the list view
 - `worker/index.ts` — possibly register the lexicon (or do this manually via existing publish flow)
-- `styles.css` — styles for project picker dialog and header buttons
+- `index.html` — remove `#back-to-landing` button
+- `styles/header.css` — username dropdown styles
+- `styles/workspace/sidebar.css` — save button at bottom of sidebar
+- `styles/workspace/accordion.css` — save button below accordions
+- `styles/wizard/dialogs.css` — project picker and delete confirmation dialog styles
 
 ## Integration Boundaries
 
@@ -156,49 +184,59 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 - **Data flowing in:** `listRecords` → project summaries; `getRecord` → full project state
 - **Data flowing out:** `createRecord` / `putRecord` → serialized WizardState; `deleteRecord` → remove project
 - **Expected contract:** Standard `com.atproto.repo.*` XRPC methods via the authenticated Agent. The session's DID is used as the `repo` parameter. Records conform to the `com.thelexfiles.appwizard.project` lexicon. OAuth scope `atproto transition:generic` grants full repo read/write.
-- **Unavailability:** All PDS operations show a user-facing error message. No operation blocks the wizard — the user can always continue working with localStorage. The "Save" button shows an error; the project picker shows "Unable to load projects" with a retry option.
+- **Unavailability:** All PDS operations show a user-facing error message. No operation blocks the wizard — the user can always continue working with localStorage. The save button shows an error state; the project picker shows "Unable to load projects" with a retry option.
 
 ### localStorage (existing)
 - **Relationship:** localStorage remains the working copy. PDS is the durable store. On load-from-PDS, localStorage is overwritten with the loaded state. On save-to-PDS, the current localStorage state is what gets saved.
-- **No sync:** There is no automatic sync loop. PDS saves happen on explicit user action (Save button) or on generate. PDS loads happen on explicit user action (project picker).
-- **Save feedback:** When logged in, the "Progress saved!" localStorage indicator is suppressed. PDS "Saved" confirmation is the only save feedback shown. When logged out, localStorage feedback remains as-is.
+- **Save triggers:** localStorage auto-save continues on every input change (as today). PDS auto-save triggers on panel switch, card create/update, and generate. Manual PDS save via the sidebar/accordion button.
+- **Save feedback:** When logged in, the "Progress saved!" localStorage indicator is suppressed. The sidebar/accordion save button shows PDS save status instead. When logged out, localStorage feedback remains as-is.
 
 ## Behavioral Scenarios
 
 **Scenario: First-time login with no saved projects**
 - Setup: User has never logged in before. localStorage has a project in progress.
 - Action: User logs in.
-- Expected: Login completes, no project picker appears. User continues with their localStorage project. "Save" and "My Projects" buttons appear in header.
+- Expected: Login completes, no project picker appears. User continues with their localStorage project. Username dropdown appears in header. Save button appears at bottom of sidebar.
 
 **Scenario: Login with saved projects**
 - Setup: User has 3 projects saved on PDS. localStorage has a different project in progress.
 - Action: User logs in.
 - Expected: Project picker dialog shows 3 projects sorted by most recent. Dialog warns "You have an unsaved local project" with option to save it first. User can load a PDS project (replacing localStorage), continue without loading (keeping localStorage project), or start fresh.
 
-**Scenario: Save new project**
+**Scenario: Save new project (manual)**
 - Setup: User is logged in. `activeProjectRkey` is null. Current project has appName "My Cool App".
-- Action: User clicks "Save".
-- Expected: `createRecord` is called. Project is saved with projectName "My Cool App". `activeProjectRkey` is set to the returned TID. `lastPdsSaveTimestamp` updated. Button briefly shows success state.
+- Action: User clicks "Save to PDS" in sidebar.
+- Expected: `createRecord` is called. Project is saved with projectName "My Cool App". `activeProjectRkey` is set to the returned TID. `lastPdsSaveTimestamp` updated. Button briefly shows "Saved!" in green.
+
+**Scenario: Auto-save on panel switch**
+- Setup: User is logged in with a project loaded. User has made changes on the Data panel.
+- Action: User clicks "Components" in the sidebar.
+- Expected: Panel switches to Components. In the background, PDS save fires. Save button briefly flashes "Saved!". If save fails, button shows error state but panel switch is unaffected.
+
+**Scenario: Auto-save on card create**
+- Setup: User is logged in on the Requirements panel.
+- Action: User creates a new requirement.
+- Expected: Requirement is added to state. localStorage saves immediately. PDS auto-save fires (debounced). Save button briefly flashes "Saved!".
 
 **Scenario: Update existing project**
 - Setup: User is logged in. `activeProjectRkey` is "3lr7...". User has made changes since last save.
-- Action: User clicks "Save".
-- Expected: `putRecord` is called with rkey "3lr7...". Record is updated. `lastPdsSaveTimestamp` updated. Brief success confirmation.
+- Action: User clicks "Save to PDS" in sidebar.
+- Expected: `putRecord` is called with rkey "3lr7...". Record is updated. `lastPdsSaveTimestamp` updated. Brief "Saved!" confirmation.
 
 **Scenario: Save with blank app name**
 - Setup: User is logged in, has meaningful state, but appInfo.appName is empty.
-- Action: User clicks "Save".
+- Action: Save triggers (manual or auto).
 - Expected: Project is saved with projectName "Untitled Project".
 
 **Scenario: Load project from picker**
 - Setup: User has localStorage project "App A" (already saved to PDS). PDS has project "App B".
-- Action: User opens My Projects, clicks "App B".
+- Action: User opens My Projects via username dropdown, clicks "App B", clicks "Load Selected".
 - Expected: App B's WizardState is loaded via `setWizardState()`, `activeProjectRkey` set to App B's rkey, `lastPdsSaveTimestamp` set, localStorage updated, UI re-renders to show App B's state.
 
 **Scenario: Load project with unsaved local changes**
-- Setup: User has "App A" loaded with changes since last PDS save. User opens My Projects, tries to load "App B".
-- Action: User clicks "App B".
-- Expected: Dialog warns "You have unsaved changes in your current project" with "Save First" option. User can save then load, or discard changes and load.
+- Setup: User has "App A" loaded with changes since last PDS save. User opens My Projects.
+- Action: Dialog opens.
+- Expected: Dialog warns "You have unsaved changes in your current project" with "Save Current Project First" button. User can save then load, or dismiss warning and load anyway.
 
 **Scenario: Load project with never-saved local work**
 - Setup: User has meaningful local state that has never been saved to PDS (`activeProjectRkey` is null). User opens My Projects.
@@ -207,33 +245,28 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 
 **Scenario: Delete project from picker**
 - Setup: User has 3 projects on PDS.
-- Action: User clicks delete on "Old App".
-- Expected: Confirmation dialog requires typing "Old App" to confirm. After confirmation, `deleteRecord` called. Project removed from list. If it was the active project, `activeProjectRkey` and `lastPdsSaveTimestamp` are set to null.
-
-**Scenario: Switch projects with unsaved changes**
-- Setup: User is logged in with "App A" loaded (`activeProjectRkey` set). User has made changes since last PDS save.
-- Action: User clicks "My Projects".
-- Expected: Dialog shows "You have unsaved changes in your current project" with a "Save First" option before loading a different project.
+- Action: User clicks × on "Old App".
+- Expected: Delete confirmation dialog appears, requires typing "Old App" to confirm. Delete button disabled until name matches. After confirmation, `deleteRecord` called. Project removed from list. If it was the active project, `activeProjectRkey` and `lastPdsSaveTimestamp` are set to null.
 
 **Scenario: PDS save fails (network error)**
 - Setup: User is logged in. PDS is unreachable.
-- Action: User clicks "Save".
-- Expected: Button shows error state. Error message displayed (e.g., "Couldn't save to PDS — check your connection"). localStorage save is unaffected. User can continue working.
+- Action: Save triggers (manual or auto).
+- Expected: Save button shows "Save failed" in red. Status text shows "Check connection". localStorage save is unaffected. User can continue working.
 
 **Scenario: PDS list fails on login**
 - Setup: User logs in. PDS is unreachable for listRecords.
 - Action: Login completes.
-- Expected: Login succeeds (profile shows). Project picker is skipped. "My Projects" button still appears. If user clicks it, dialog shows "Unable to load projects" with retry.
+- Expected: Login succeeds (username dropdown shows). Project picker is skipped. If user clicks "My Projects", dialog shows "Unable to load projects" with retry.
 
 **Scenario: Auto-save on generate**
 - Setup: User is logged in. Project has changes not yet saved to PDS.
 - Action: User generates and downloads ZIP.
-- Expected: ZIP downloads normally. After download completes, project is silently saved to PDS. If save fails, a non-blocking warning appears but download is not affected.
+- Expected: ZIP downloads normally. After download completes, project is saved to PDS. Save button shows "Saved!". If save fails, a non-blocking warning appears but download is not affected.
 
 **Scenario: Logged-out user**
 - Setup: User is not logged in.
 - Action: User uses the wizard normally.
-- Expected: No "Save" button, no "My Projects" button. localStorage auto-save works as before with "Progress saved!" indicator. No PDS interactions occur.
+- Expected: No save button in sidebar/accordion. No username dropdown. "Log in" button in header. localStorage auto-save works as before with "Progress saved!" indicator. No PDS interactions occur.
 
 **Scenario: Start new project from picker**
 - Setup: User has "App A" loaded with unsaved changes.
@@ -242,20 +275,28 @@ Currently wizard state is only persisted in localStorage, which is device-specif
 
 **Scenario: Project too large to save**
 - Setup: User has a very complex project. Serialized WizardState exceeds 500KB.
-- Action: User clicks "Save".
-- Expected: Save fails with message: "This project is too large to save to your PDS. You can continue working locally." localStorage is unaffected.
+- Action: Save triggers (manual or auto).
+- Expected: Save fails. Save button shows error. Status message: "Project too large to save to PDS." localStorage is unaffected.
+
+**Scenario: Debounced auto-save**
+- Setup: User is logged in. User rapidly creates 3 requirements in succession.
+- Action: Three card-create events fire within a short window.
+- Expected: Only one PDS save occurs (debounced). Save button shows "Saved!" once after the debounce settles.
 
 ## How to Verify
 
-1. **Prerequisite — PDS write test:** Log in, run a test function from browser console that creates a record, reads it back, and deletes it. Confirm all three operations succeed with the current OAuth scope.
-2. **Manual — logged out:** Verify wizard works identically to today. No PDS UI visible. "Progress saved!" still appears on localStorage saves.
-3. **Manual — login with no projects:** Log in, verify no picker appears. Verify "Save" and "My Projects" appear in header.
-4. **Manual — save and reload:** Log in, create a project, click Save. Log out. Clear localStorage. Log back in. Verify project appears in picker and can be loaded.
-5. **Manual — multiple projects:** Save 2-3 projects. Open My Projects. Verify all appear sorted by date. Load one, verify state switches. Load another, verify state switches.
-6. **Manual — unsaved changes:** Make changes after saving. Open My Projects. Verify unsaved changes warning appears. Verify "Save First" works.
-7. **Manual — unsaved local work:** Have local work without ever saving to PDS. Log in (or open My Projects). Verify warning about unsaved local project.
-8. **Manual — delete:** Delete a project from the picker. Verify name-typing confirmation is required. Verify project is gone on refresh.
-9. **Manual — cross-device:** Save a project on one browser/device. Log in on another. Verify project appears and loads correctly.
-10. **Manual — error handling:** Disconnect network. Try to save. Verify graceful error. Try My Projects. Verify graceful error with retry.
-11. **Manual — save feedback:** When logged in, verify "Progress saved!" does NOT appear on regular edits. Verify PDS save shows its own confirmation.
-12. **Automated:** Unit tests for ProjectService (mock the Agent's XRPC calls). Test serialization/deserialization round-trip. Test projectName derivation. Test unsaved-changes detection logic.
+1. **Prerequisite — PDS write test:** ~~Log in, run a test function from browser console.~~ Done — verified 2026-03-25.
+2. **Manual — logged out:** Verify wizard works identically to today. No PDS UI visible. No save button in sidebar. "Progress saved!" still appears on localStorage saves.
+3. **Manual — username dropdown:** Log in. Verify username appears with ▾ caret. Click it — verify "My Projects" and "Log out" appear. Click outside — verify it closes.
+4. **Manual — save button:** Log in. Verify save button appears at bottom of sidebar. Click it. Verify save succeeds with "Saved!" flash. Verify "Last saved" timestamp updates.
+5. **Manual — auto-save:** Log in with a project. Switch panels. Verify save button briefly flashes "Saved!". Create a card. Verify same behavior.
+6. **Manual — login with no projects:** Log in, verify no picker appears.
+7. **Manual — save and reload:** Log in, work on a project, let auto-save run. Log out. Clear localStorage. Log back in. Verify project appears in picker and can be loaded.
+8. **Manual — multiple projects:** Save 2-3 projects. Open My Projects. Verify all appear sorted by date. Load one, verify state switches. Load another, verify state switches.
+9. **Manual — unsaved changes:** Make changes after saving. Open My Projects. Verify unsaved changes warning appears. Verify "Save First" works.
+10. **Manual — delete:** Delete a project from the picker. Verify name-typing confirmation is required. Verify project is gone on refresh.
+11. **Manual — cross-device:** Save a project on one browser/device. Log in on another. Verify project appears and loads correctly.
+12. **Manual — error handling:** Disconnect network. Try to save. Verify save button shows error state. Try My Projects. Verify graceful error with retry.
+13. **Manual — narrow layout:** Resize to narrow breakpoint. Verify save button appears below accordions. Verify username dropdown still works.
+14. **Manual — back-to-intro removed:** Verify the "← Back to intro" button is gone.
+15. **Automated:** Unit tests for ProjectService (mock the Agent's XRPC calls). Test serialization/deserialization round-trip. Test projectName derivation. Test unsaved-changes detection logic. Test debounce behavior.

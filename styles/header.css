@@ -132,31 +132,91 @@
     }
   }
 
-  .header-auth-user {
-    color: var(--text-primary);
-    font-family: var(--ff-heading);
-    font-size: 1.2rem;
-    letter-spacing: 0.05em;
-    line-height: 0.8;
-  }
-
-  @media (width > 480px) {
-    .header-auth-user {
-      font-size: 1.4rem;
-    }
-  }
-
-  .header-auth-sep {
-    color: var(--text-muted);
-    margin: 0 0.15rem;
-    line-height: 0.8;
-  }
-
   .header-auth-error {
     color: var(--accent-red);
     font-size: 0.9rem;
     margin-right: 0.5rem;
     animation: fade-up 0.3s ease;
+  }
+
+  /* ===== USERNAME DROPDOWN MENU ===== */
+
+  .menu-nav {
+    position: relative;
+  }
+
+  .user-menu-trigger {
+    color: var(--text-primary);
+    font-family: var(--ff-heading);
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    line-height: 0.8;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    transition:
+      color 0.2s,
+      border-color 0.2s,
+      background-color 0.2s;
+  }
+
+  .user-menu-trigger::after {
+    content: ' \25BE';
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .user-menu-trigger:hover {
+    border-color: var(--border-subtle);
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  @media (width > 480px) {
+    .user-menu-trigger {
+      font-size: 1.4rem;
+      padding: 0.3rem 0.8rem;
+    }
+  }
+
+  .user-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    min-width: 170px;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .user-menu-dropdown[hidden] {
+    display: none;
+  }
+
+  .user-menu-dropdown hr {
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+    margin: 0.25rem 0;
+  }
+
+  .user-menu-item {
+    display: block;
+    padding: 0.7rem 1.25rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .user-menu-item:hover {
+    background: var(--accent-glow);
+    color: var(--accent);
   }
 
   /* ===== WIZARD (STATE-WIZARD) HEADER OVERRIDES ===== */

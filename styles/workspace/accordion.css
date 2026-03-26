@@ -143,5 +143,26 @@
     .workspace {
       margin-left: 0;
     }
+
+    /* Accordion save button (below all accordion sections) */
+    .accordion-save {
+      padding: 1rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .accordion-save[hidden] {
+      display: none;
+    }
+
+    .accordion-save .sidebar-save-btn {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .accordion-save .sidebar-save-status {
+      max-width: 300px;
+      margin: 0.35rem auto 0;
+      text-align: center;
+    }
   }
 }

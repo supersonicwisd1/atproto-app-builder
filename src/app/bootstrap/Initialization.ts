@@ -34,12 +34,16 @@ import {
   showError,
   completeLogin,
   setOnLoggedOut,
+  setOnLoggedIn,
 } from '../auth/HeaderAuth';
 import {
   renderLoginDialog,
   setupLoginDialog,
   setupLoginButton,
 } from '../auth/LoginDialog';
+import { setupProjectPicker, showPostLoginPicker } from '../auth/ProjectPickerDialog';
+import { updateSaveButtonVisibility, wireSaveButtons, triggerAutoSave } from '../services/PdsSaveController';
+import { setLoggedIn, setOnSaveCallback } from '../state/WizardState';
 
 export let setupTooltips: any;
 
@@ -89,24 +93,6 @@ export function initializeApp(): void {
   const headerTitle = document.querySelector('.header-title');
   if (headerTitle) {
     headerTitle.addEventListener('click', () => {
-      const wizardState = getWizardState();
-      if (wizardState.currentStep >= 2) {
-        guardedLeaveWizard(() => {
-          transitionToLanding(() => {
-            wizardState.currentStep = 0;
-            renderCurrentStep();
-            updateProgressBar();
-            pushStepToHistory(0);
-          });
-        });
-      }
-    });
-  }
-
-  // Wire up back-to-landing button
-  const backToLandingBtn = document.getElementById('back-to-landing');
-  if (backToLandingBtn) {
-    backToLandingBtn.addEventListener('click', () => {
       const wizardState = getWizardState();
       if (wizardState.currentStep >= 2) {
         guardedLeaveWizard(() => {
@@ -266,11 +252,24 @@ export function initializeApp(): void {
     }
   });
 
+  // Register PDS auto-save callback (debounced, fires on every saveWizardState)
+  setOnSaveCallback(triggerAutoSave);
+
   // Auth initialization
   document.body.insertAdjacentHTML('beforeend', renderLoginDialog());
   setupLoginDialog();
   setupLoginButton();
-  setOnLoggedOut(() => setupLoginButton());
+  setupProjectPicker();
+  setOnLoggedOut(() => {
+    setLoggedIn(false);
+    setupLoginButton();
+    updateSaveButtonVisibility();
+  });
+  setOnLoggedIn(() => {
+    updateSaveButtonVisibility();
+    wireSaveButtons();
+    showPostLoginPicker();
+  });
   initAuth();
 
   // Render the initial step

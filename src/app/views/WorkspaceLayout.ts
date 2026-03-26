@@ -13,6 +13,7 @@
 
 import template from './workspace.html?raw';
 import { getWizardState, saveWizardState } from '../state/WizardState';
+import { updateSaveButtonVisibility, wireSaveButtons } from '../services/PdsSaveController';
 import type { SectionName } from '../../types/wizard';
 import {
   renderRequirementsPanel,
@@ -93,6 +94,11 @@ export function wireWorkspaceLayout(): void {
 
   // Keep progress fill in sync on resize
   window.addEventListener('resize', updateProgressFill);
+
+  // Show/hide PDS save button and wire click handlers
+  // (needed here because the workspace DOM may render after login)
+  updateSaveButtonVisibility();
+  wireSaveButtons();
 
   // Show welcome dialog on first visit
   if (!wizardState.hasSeenWelcome) {

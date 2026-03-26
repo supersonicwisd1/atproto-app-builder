@@ -264,4 +264,94 @@
       font-size: 1.1rem;
     }
   }
+
+  /* ===== PROJECT PICKER DIALOG ===== */
+
+  .project-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+  }
+
+  .project-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .project-item:hover {
+    border-color: var(--border-accent);
+    background: var(--accent-glow);
+  }
+
+  .project-item.active,
+  .project-item.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .project-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .project-item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+  }
+
+  .project-item-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .project-item-active-badge {
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid var(--border-accent);
+    border-radius: 99px;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.5rem;
+    font-weight: 400;
+  }
+
+  .project-item-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .project-item-delete:hover {
+    color: var(--accent-red);
+  }
+
+  .delete-confirm-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    margin: 0.75rem 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+
+  .delete-confirm-input:focus {
+    outline: none;
+    border-color: var(--accent-red);
+  }
 }

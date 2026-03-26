@@ -11,6 +11,59 @@ const STALE_DAYS = 30;
 export let wizardState: WizardState | null = null;
 export let currentEditingId: string | null = null;
 
+// --- PDS project tracking (session-only, not persisted) ---
+let activeProjectRkey: string | null = null;
+let lastPdsSaveTimestamp: string | null = null;
+let _isLoggedIn = false;
+
+export function getActiveProjectRkey(): string | null {
+  return activeProjectRkey;
+}
+
+export function setActiveProjectRkey(rkey: string | null): void {
+  activeProjectRkey = rkey;
+}
+
+export function getLastPdsSaveTimestamp(): string | null {
+  return lastPdsSaveTimestamp;
+}
+
+export function setLastPdsSaveTimestamp(ts: string | null): void {
+  lastPdsSaveTimestamp = ts;
+}
+
+export function setLoggedIn(loggedIn: boolean): void {
+  _isLoggedIn = loggedIn;
+}
+
+export function isLoggedIn(): boolean {
+  return _isLoggedIn;
+}
+
+/**
+ * Check if the current project has unsaved PDS changes.
+ * True if: logged in AND (never saved to PDS with meaningful state, OR
+ * localStorage has been updated since the last PDS save).
+ */
+export function hasUnsavedPdsChanges(): boolean {
+  if (!_isLoggedIn) return false;
+  const state = wizardState;
+  if (!state) return false;
+
+  if (!lastPdsSaveTimestamp) {
+    return hasMeaningfulState(state);
+  }
+
+  return new Date(state.lastSaved).getTime() > new Date(lastPdsSaveTimestamp).getTime();
+}
+
+/** Callback invoked after every localStorage save to trigger PDS auto-save. */
+let _onSaveCallback: (() => void) | null = null;
+
+export function setOnSaveCallback(cb: (() => void) | null): void {
+  _onSaveCallback = cb;
+}
+
 export function setCurrentEditingId(id: string | null): void {
   currentEditingId = id;
 }
@@ -145,7 +198,13 @@ export function getWizardState(): WizardState {
 export function saveWizardState(state: WizardState): void {
   state.lastSaved = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  showSaveConfirmation();
+  // Only show "Progress saved!" when logged out — when logged in, the
+  // sidebar save button handles PDS save feedback instead.
+  if (!_isLoggedIn) {
+    showSaveConfirmation();
+  }
+  // Trigger debounced PDS auto-save if registered
+  _onSaveCallback?.();
 }
 
 export function loadWizardState(): LoadedState | null {
