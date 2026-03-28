@@ -12,6 +12,7 @@ export interface LexiStatEntry {
   domain?: string;
   total_events_7d?: number;
   avg_eps_7d?: number;
+  unique_users_7d?: number;
 }
 
 /**

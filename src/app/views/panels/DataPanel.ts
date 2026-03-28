@@ -780,14 +780,15 @@ function renderPopularList(): string {
     .slice(0, 50)
     .map((entry) => {
       const events7d = entry.total_events_7d ?? 0;
-      const eps = entry.avg_eps_7d ?? 0;
+      const users7d = entry.unique_users_7d;
       const categoryBadge = entry.category
         ? `<span class="search-result-source">${escapeHtml(entry.category)}</span>`
         : '';
       const desc = entry.description
         ? `<div class="popular-result-desc">${escapeHtml(entry.description)}</div>`
         : '';
-      const stats = `<div class="popular-result-stats">${events7d.toLocaleString()} events (7d) &middot; ${eps} eps</div>`;
+      const usersPart = users7d != null ? `${users7d.toLocaleString()} users (7d) &middot; ` : '';
+      const stats = `<div class="popular-result-stats">${usersPart}${events7d.toLocaleString()} events (7d)</div>`;
 
       return `
         <div class="search-result-item popular-result-item" data-nsid="${escapeAttr(entry.nsid)}">
